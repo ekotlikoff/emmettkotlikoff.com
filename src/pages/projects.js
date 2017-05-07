@@ -38,34 +38,45 @@ class Projects extends Component {
         }
         console.log(error);
         this.setState({[mac ? 'macLoading' : 'windowsLoading']: false});
-
       }.bind(this));
     }
   }
 
   render() {
     return (
-      <container>
-        <Row>
-          <Col sm={{ size: 'auto', offset: 1 }}>
-            <ButtonGroup vertical>
-              <Button
-                disabled={this.state.macLoading}
-                onClick={this.handleClick(true)}>
-                Download OSX
-              </Button>
-              <Button
-                disabled={this.state.windowsLoading}
-                onClick={this.handleClick(false)}>
-                Download Windows
-              </Button>
-            </ButtonGroup>
-          </Col>
-          <Col sm={{ size: 'auto', offset: .5 }}>
+      <Row>
+        <Col style={{ minWidth: '375px' }} sm={{ offset: 1 }}>
+          <Row>
             <iframe src='https://player.vimeo.com/video/214382832' width='640' height='480' frameBorder='0' allowFullScreen />
+          </Row>
+        </Col>
+        <Col>
+          <Col>
+            <Row>
+              <ButtonGroup style={{ margin: 'auto' }}>
+                <Button
+                  disabled={this.state.macLoading}
+                  onClick={this.handleClick(true)}>
+                  Download OSX
+                </Button>
+                <Button
+                  disabled={this.state.windowsLoading}
+                  onClick={this.handleClick(false)}>
+                  Download Windows
+                </Button>
+              </ButtonGroup>
+            </Row>
           </Col>
-        </Row>
-      </container>
+          <Col sm={{ offset: 1, size: 10 }}>
+            <Row>
+              Oscar is a game developed with a team of four programmers and two designers.
+              As lead developer, I was responsible for handling communications between the technical and
+              non-technical sides of the team as well as delegation of programming tasks and major design desitions.
+              The game won Most Polished out of the 18 competing teams.
+            </Row>
+          </Col>
+        </Col>
+      </Row>
     );
   }
 }

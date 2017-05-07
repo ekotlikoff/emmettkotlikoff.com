@@ -1,7 +1,7 @@
 import React from 'react'
 import Work from '../components/Work'
 
-const content = [
+const experienceContent = [
   {
     company: 'Goldman Sachs',
     position: 'Technology Analyst',
@@ -42,8 +42,33 @@ const content = [
   }
 ]
 
+const educationContent = [
+  {
+    company: 'Cornell University',
+    position: 'BA in Computer Science',
+    startDate: '2012',
+    endDate: '2016',
+    summary: 'Ithaca, NY',
+    highlights: [
+    ],
+  },
+];
+
 const Resume = () => (
-  <Work content={content} />
+  <div id='work'>
+    <h1 style={{ marginLeft: '15px' }}>
+      <span>
+        Experience
+      </span>
+    </h1>
+    <Work content={experienceContent} />
+    <h1 style={{ marginLeft: '15px' }}>
+      <span>
+        Education
+      </span>
+    </h1>
+    <Work content={educationContent} />
+  </div>
 )
 
 export default Resume

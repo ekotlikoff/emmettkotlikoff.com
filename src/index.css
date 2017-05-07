@@ -69,7 +69,6 @@ body {
 
 .column, .columns {
    position: relative;
-   padding: 0 20px;
    min-height: 1px;
    float: left;
 }
@@ -87,10 +86,8 @@ body {
 [class*="column"] + [class*="column"].end { float: right; }
 
 
-.education, .work {
-   margin-bottom: 48px;
-   padding-bottom: 24px;
-   border-bottom: 1px solid #E8E8E8;
+.row {
+  margin-bottom: 10px;
 }
 
 .bullet-point {
@@ -103,13 +100,14 @@ body {
 /* ------------------------------------------------------------------ */
 
 #work {
-   background: #fff;
    padding-bottom: 0px;
    overflow: hidden;
 }
 
 #work a, #work a:visited  { color: #313131; }
 #work a:hover, #work a:focus { color: #11ABB0; }
+#link a, #link a:visited  { color: #313131; }
+#link a:hover, #link a:focus{ color: #11ABB0; }
 
 #work h1 {
    font: 18px/24px 'opensans-bold', sans-serif;
@@ -123,15 +121,15 @@ body {
 #work h3 {
    font: 25px/30px 'opensans-bold', sans-serif;
 }
+label span,
+legend span {
+	color: #8B9798;
+   font: 14px/24px 'opensans-regular', sans-serif;
+}
 
 #work .header-col { padding-top: 9px; }
 #work .main-col { padding-right: 10%; }
 
-.education, .work {
-   margin-bottom: 48px;
-   padding-bottom: 24px;
-   border-bottom: 1px solid #E8E8E8;
-}
 #work .info {
    font: 15px/24px 'librebaskerville-regular', sans-serif;
    color: #6E7881;

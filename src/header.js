@@ -4,20 +4,27 @@ import { Nav, NavItem, NavLink } from 'reactstrap';
 import { Link } from 'react-router-dom'
 
 const Header = ({ match }) => (
-  <div>
+  <div style={{ height: '150px' }}>
     <div className='App-header' style={{ textAlign: 'center' }}>
-      <div style={{ display: 'inline-block '}}>
-        <h6>Hi I'm, </h6><h2>Emmett Kotlikoff</h2>
+      <div>
+        <h2>Emmett Kotlikoff</h2>
+        <h7 id='link'>
+          <a
+            style={{ marginRight: '10px' }}
+            href='https://www.linkedin.com/in/emmett-kotlikoff/'
+          >
+            LinkedIn
+          </a>
+          <a style={{ marginRight: '10px' }} href='mailto:emmettkotlikoff@gmail.com'>Email</a>
+          <a href='emmett.kotlikoff.pdf'>Resume</a>
+        </h7>
       </div>
       <Nav tabs>
         <NavItem>
-          <NavLink tag={Link} to='/experience' active={match.params.page === 'experience'}>Experience</NavLink>
+          <NavLink tag={Link} to='/aboutMe' active={match.params.page !== 'projects'}>About Me</NavLink>
         </NavItem>
         <NavItem>
           <NavLink tag={Link} to='/projects' active={match.params.page === 'projects'}>Projects</NavLink>
-        </NavItem>
-        <NavItem>
-          <NavLink tag={Link} to='/aboutme' active={match.params.page === 'aboutme'}>About Me</NavLink>
         </NavItem>
       </Nav>
     </div>

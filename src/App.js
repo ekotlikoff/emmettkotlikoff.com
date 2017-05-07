@@ -2,13 +2,14 @@ import React, { Component } from 'react'
 import {
   BrowserRouter as Router,
   Route,
+  Switch,
 } from 'react-router-dom'
 
 import Header from './header'
 import Home from './pages/Home'
 import Projects from './pages/projects'
-import AboutMe from './pages/AboutMe'
 import Resume from './pages/Resume'
+import { Col } from 'reactstrap';
 import './App.css'
 import * as firebase from 'firebase';
 
@@ -30,10 +31,15 @@ class App extends Component {
       <Router>
         <div>
           <Route path='/:page?' component={Header} />
-          <Route exact path='/' component={Home} />
-          <Route path='/projects' component={Projects} />
-          <Route path='/experience' component={Resume} />
-          <Route path='/aboutme' component={AboutMe} />
+          <Route component={() => (
+            <Col id='background' style={{ minHeight: 'calc(100vh - 150px)' }}>
+              <Switch>
+                <Route path='/aboutMe' component={Resume} />
+                <Route path='/projects' component={Projects} />
+                <Route component={Resume} />
+              </Switch>
+            </Col>
+          )} />
         </div>
       </Router>
     )
