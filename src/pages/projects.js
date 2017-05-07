@@ -69,9 +69,10 @@ class Projects extends Component {
           </Col>
           <Col sm={{ offset: 1, size: 10 }}>
             <Row>
-              Oscar is a game developed with a team of four programmers and two designers.
-              As lead developer, I was responsible for handling communications between the technical and
-              non-technical sides of the team as well as delegation of programming tasks and major design desitions.
+              Oscar is a charming and humorous game Emmett developed with a team of four programmers and two designers.
+              As lead developer, he was responsible for communicating technical feasibility
+              of any potential features to the non-technical side of the team as well as
+              delegation of programming tasks and the final say on technical design decisions.
               The game won Most Polished out of the 18 competing teams.
             </Row>
           </Col>

@@ -5,7 +5,7 @@ import { Row, Col } from 'reactstrap';
 
 const Work = ({content}) => (
   <Row>
-    <Col sm={{ size: 'auto', offset: 1 }} id='work'>
+    <Col xs={{ size: '10', offset: 1 }} id='work'>
       <div className='entryRow work'>
         <div className='eleven columns main-col'>
           {content.map(function(entry, index) {

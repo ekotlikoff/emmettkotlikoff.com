@@ -101,7 +101,6 @@ body {
 
 #work {
    padding-bottom: 0px;
-   overflow: hidden;
 }
 
 #work a, #work a:visited  { color: #313131; }
@@ -128,7 +127,6 @@ legend span {
 }
 
 #work .header-col { padding-top: 9px; }
-#work .main-col { padding-right: 10%; }
 
 #work .info {
    font: 15px/24px 'librebaskerville-regular', sans-serif;

@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom'
 const Header = ({ match }) => (
   <div style={{ height: '150px' }}>
     <div className='App-header' style={{ textAlign: 'center' }}>
-      <div>
+      <div style={{ marginBottom: '18px' }}>
         <h2>Emmett Kotlikoff</h2>
         <h7 id='link'>
           <a

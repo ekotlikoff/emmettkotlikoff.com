@@ -16,7 +16,7 @@ const Entry = ({ index, entry, total }) => {
           <h3>
             <a href={entry.website}>{entry.company}</a>
           </h3>
-          <p style={{ width: '700px' }} className='info'>
+          <p className='info'>
             {entry.position}
             <span>
               &bull;
