@@ -11,7 +11,7 @@ const Header = ({ match }) => (
         <h7 id='link'>
           <a
             style={{ marginRight: '10px' }}
-            href='https://www.linkedin.com/in/emmett-kotlikoff/'
+            href='https://www.linkedin.com/in/emmettkotlikoff/'
           >
             LinkedIn
           </a>
