@@ -1,27 +1,175 @@
 import React, { Component } from 'react'
 import * as firebase from 'firebase';
-import PIXI from "pixi.js"
+import * as PIXI from 'pixi.js';
+
+let players = {};
+let userRef = null;
+let database = null;
+let userId = null;
+
+const keyboard = (keyCode) => {
+  let key = {};
+  key.code = keyCode;
+  key.isDown = false;
+  key.isUp = true;
+  key.press = undefined;
+  key.release = undefined;
+  //The `downHandler`
+  key.downHandler = function(event) {
+    if (event.keyCode === key.code) {
+      if (key.isUp && key.press) key.press();
+      key.isDown = true;
+      key.isUp = false;
+    }
+    event.preventDefault();
+  };
+
+  //The `upHandler`
+  key.upHandler = function(event) {
+    if (event.keyCode === key.code) {
+      if (key.isDown && key.release) key.release();
+      key.isDown = false;
+      key.isUp = true;
+    }
+    event.preventDefault();
+  };
+
+  //Attach event listeners
+  window.addEventListener(
+    "keydown", key.downHandler.bind(key), false
+  );
+  window.addEventListener(
+    "keyup", key.upHandler.bind(key), false
+  );
+  return key;
+}
+
+let cat = null;
 
 class Game extends Component {
   constructor() {
     super();
-    this.state = { userData: null };
     this.componentDidMount = this.componentDidMount.bind(this);
+    this.initializePixiCanvas = this.initializePixiCanvas.bind(this);
+    this.animate = this.animate.bind(this);
+    this.loadImages = this.loadImages.bind(this);
+    this.connectToDB = this.connectToDB.bind(this);
   }
-  componentDidMount() {
+
+  initializePixiCanvas() {
+    //Setup PIXI Canvas in componentDidMount
+    this.renderer = PIXI.autoDetectRenderer(1366, 768);
+    this.refs.gameCanvas.appendChild(this.renderer.view);
+
+    // create the root of the scene graph
+    this.stage = new PIXI.Container();
+  }
+
+  loadImages() {
+    PIXI.loader
+      .add("cat.png")
+      .load(this.createSprites);
+  }
+
+  connectToDB() {
     firebase.auth().signInAnonymously().catch(function(error) {
       console.log(error.code);
       console.log(error.message);
     });
-    const database = firebase.database();
     const setState = (uid) => {
-        this.setState({
-        userRef: database.ref('users/' + this.state.userId + '/xCoordinate'),
-        database,
-        userId: uid,
-      });
+      database = firebase.database();
+      userRef = database.ref('users/' + uid);
+      userId = uid;
     }
-    const userCreated = () => this.state.userRef;
+    const userCreated = () => userRef;
+    const updateUsers = (data) => {
+      for (const playerKey in players) {
+        if (players.hasOwnProperty(playerKey)) {
+          if (!data.hasOwnProperty(playerKey)) {
+            // TODO this object no longer in db so remove it from players and container
+            this.stage.removeChild(players[playerKey]);
+            delete players[playerKey];
+          }
+        }
+      }
+      for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+          if (!players.hasOwnProperty(key)) {
+            players[key] = new PIXI.Sprite(
+              PIXI.loader.resources["cat.png"].texture
+            );
+            this.stage.addChild(players[key]);
+            if (key === userId) {
+              cat = players[key];
+              console.log(' creating my cat ');
+              cat.x = 0;
+              cat.y = 0;
+              cat.vx = 0;
+              cat.vy = 0;
+              //Add the cat to the stage
+              this.stage.addChild(cat);
+              //Capture the keyboard arrow keys
+              var left = keyboard(37),
+                  up = keyboard(38),
+                  right = keyboard(39),
+                  down = keyboard(40);
+
+              //Left arrow key `press` method
+              left.press = function() {
+                //Change the cat's velocity when the key is pressed
+                cat.vx = -5;
+              };
+
+              //Left arrow key `release` method
+              left.release = function() {
+
+                //If the left arrow has been released, and the right arrow isn't down,
+                //and the cat isn't moving vertically:
+                //Stop the cat
+                if (!right.isDown) {
+                  cat.vx = 0;
+                }
+              };
+
+              //Up
+              up.press = function() {
+                cat.vy = -5;
+              };
+              up.release = function() {
+                if (!down.isDown) {
+                  cat.vy = 0;
+                }
+              };
+
+              //Right
+              right.press = function() {
+                cat.vx = 5;
+              };
+              right.release = function() {
+                if (!left.isDown) {
+                  cat.vx = 0;
+                }
+              };
+
+              //Down
+              down.press = function() {
+                cat.vy = 5;
+              };
+              down.release = function() {
+                if (!up.isDown) {
+                  cat.vy = 0;
+                }
+              };
+            }
+          }
+          console.log('updating from db');
+          console.log(key);
+          console.log(data[key].xCoordinate);
+          players[key].x = data[key].xCoordinate;
+          players[key].y = data[key].yCoordinate;
+        }
+      }
+    }
     firebase.auth().onAuthStateChanged(function(user) {
       if (user && !userCreated()) {
         // User is signed in.
@@ -33,38 +181,38 @@ class Game extends Component {
           yCoordinate: 1,
         });
         database.ref('users/' + user.uid).onDisconnect().remove();
-      } else {
-        // User is signed out.
-        console.log('signed out');
       }
+      database.ref('users/').on('value', (snapshot) => {
+        updateUsers(snapshot.val());
+      })
     });
   }
 
-  render() {
-    if (this.state.userRef) {
-      console.log('updating db');
-      this.state.database.ref('users/' + this.state.userId).transaction((userData) => {
-        console.log('user data found in transaction block: ' + userData);
-        if (userData) {
-          return { xCoordinate: userData.xCoordinate + 1, yCoordinate: userData.xCoordinate + 1 };
+  componentDidMount() {
+    this.connectToDB();
+    this.initializePixiCanvas();
+    this.loadImages();
+    this.animate();
+  }
+
+  animate() {
+      // render the stage container'
+      this.frame = requestAnimationFrame(this.animate);
+      // Update
+      if (cat) {
+        cat.x += cat.vx;
+        cat.y += cat.vy;
+        // Update user's location on DB.
+        if (database) {
+          database.ref('users/' + userId).set({ xCoordinate: cat.x, yCoordinate: cat.y });
         }
-        return null;
       }
-      ,
-      function(error, committed, snapshot) {
-        if (error) {
-          console.log('Transaction failed abnormally!', error);
-        } else if (!committed) {
-          console.log('not committed');
-        } else {
-          console.log('committed!');
-        }
-      })
-    }
+      this.renderer.render(this.stage);
+  }
+
+  render() {
     return (
-      <button onClick={() => {this.setState({ render: '' })}}>
-        game
-      </button>
+      <div className='game-canvas-container' ref='gameCanvas' />
     )
   }
 }
