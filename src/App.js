@@ -4,17 +4,16 @@ import {
   Route,
   Switch,
 } from 'react-router-dom'
-
-import Header from './header'
-import Home from './pages/Home'
-import Projects from './pages/projects'
-import Resume from './pages/Resume'
 import { Col } from 'reactstrap';
 import './App.css'
 import * as firebase from 'firebase';
+import Header from './header'
+import Projects from './pages/projects'
+import Resume from './pages/Resume'
+import Game from './pages/Game';
 
 class App extends Component {
-  componentDidMount() {
+  componentWillMount() {
     var config = {
       apiKey: 'AIzaSyBfLOYLx9S_Kmh6QFTYLx_sz3pl7-J3HjE',
       authDomain: 'my-site-5f648.firebaseapp.com',
@@ -24,6 +23,7 @@ class App extends Component {
       messagingSenderId: '743241622263'
     };
     firebase.initializeApp(config);
+    console.log('app initialized');
   }
 
   render() {
@@ -36,6 +36,7 @@ class App extends Component {
               <Switch>
                 <Route path='/aboutMe' component={Resume} />
                 <Route path='/projects' component={Projects} />
+                <Route path='/experimental' component={Game} />
                 <Route component={Resume} />
               </Switch>
             </Col>

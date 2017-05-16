@@ -3,6 +3,17 @@ import PropTypes from 'prop-types'
 import { Nav, NavItem, NavLink } from 'reactstrap';
 import { Link } from 'react-router-dom'
 
+const isActive = (headerItem, currentPath) => {
+  switch (headerItem) {
+    case ('projects'):
+    return currentPath === 'projects';
+    case ('experimental'):
+    return currentPath === 'experimental';
+    default:
+    return currentPath === 'aboutMe';
+  }
+}
+
 const Header = ({ match }) => (
   <div style={{ height: '150px' }}>
     <div className='App-header' style={{ textAlign: 'center' }}>
@@ -21,10 +32,13 @@ const Header = ({ match }) => (
       </div>
       <Nav tabs>
         <NavItem>
-          <NavLink tag={Link} to='/aboutMe' active={match.params.page !== 'projects'}>About Me</NavLink>
+          <NavLink tag={Link} to='/aboutMe' active={isActive('aboutMe', match.params.page)}>About Me</NavLink>
         </NavItem>
         <NavItem>
-          <NavLink tag={Link} to='/projects' active={match.params.page === 'projects'}>Projects</NavLink>
+          <NavLink tag={Link} to='/projects' active={isActive('projects', match.params.page)}>Projects</NavLink>
+        </NavItem>
+        <NavItem>
+          <NavLink tag={Link} to='/experimental' active={isActive('experimental', match.params.page)}>Experimental</NavLink>
         </NavItem>
       </Nav>
     </div>

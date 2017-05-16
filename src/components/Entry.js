@@ -40,7 +40,7 @@ Entry.propTypes = {
   entry: PropTypes.shape({
     company: PropTypes.string.isRequired,
     position: PropTypes.string.isRequired,
-    website: PropTypes.string.isRequired,
+    website: PropTypes.string,
     startDate: PropTypes.string.isRequired,
     endDate: PropTypes.string.isRequired,
     summary: PropTypes.string.isRequired,
