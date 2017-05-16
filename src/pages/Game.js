@@ -44,7 +44,51 @@ const keyboard = (keyCode) => {
   return key;
 }
 
-let cat = null;
+const createKeyboardListeners = (cat) => {
+  const left = keyboard(37),
+      up = keyboard(38),
+      right = keyboard(39),
+      down = keyboard(40);
+
+  left.press = function() {
+    cat.vx = -5;
+  };
+
+  left.release = function() {
+    if (!right.isDown) {
+      cat.vx = 0;
+    }
+  };
+
+  up.press = function() {
+    cat.vy = -5;
+  };
+  up.release = function() {
+    if (!down.isDown) {
+      cat.vy = 0;
+    }
+  };
+
+  right.press = function() {
+    cat.vx = 5;
+  };
+  right.release = function() {
+    if (!left.isDown) {
+      cat.vx = 0;
+    }
+  };
+
+  down.press = function() {
+    cat.vy = 5;
+  };
+  down.release = function() {
+    if (!up.isDown) {
+      cat.vy = 0;
+    }
+  };
+};
+
+let thisPlayer = null;
 
 class Game extends Component {
   constructor() {
@@ -86,7 +130,6 @@ class Game extends Component {
       for (const playerKey in players) {
         if (players.hasOwnProperty(playerKey)) {
           if (!data.hasOwnProperty(playerKey)) {
-            // TODO this object no longer in db so remove it from players and container
             this.stage.removeChild(players[playerKey]);
             delete players[playerKey];
           }
@@ -100,71 +143,16 @@ class Game extends Component {
             );
             this.stage.addChild(players[key]);
             if (key === userId) {
-              cat = players[key];
-              console.log(' creating my cat ');
-              cat.x = 0;
-              cat.y = 0;
-              cat.vx = 0;
-              cat.vy = 0;
-              //Add the cat to the stage
-              this.stage.addChild(cat);
-              //Capture the keyboard arrow keys
-              var left = keyboard(37),
-                  up = keyboard(38),
-                  right = keyboard(39),
-                  down = keyboard(40);
+              thisPlayer = players[key];
+              thisPlayer.x = 0;
+              thisPlayer.y = 0;
+              thisPlayer.vx = 0;
+              thisPlayer.vy = 0;
+              this.stage.addChild(thisPlayer);
 
-              //Left arrow key `press` method
-              left.press = function() {
-                //Change the cat's velocity when the key is pressed
-                cat.vx = -5;
-              };
-
-              //Left arrow key `release` method
-              left.release = function() {
-
-                //If the left arrow has been released, and the right arrow isn't down,
-                //and the cat isn't moving vertically:
-                //Stop the cat
-                if (!right.isDown) {
-                  cat.vx = 0;
-                }
-              };
-
-              //Up
-              up.press = function() {
-                cat.vy = -5;
-              };
-              up.release = function() {
-                if (!down.isDown) {
-                  cat.vy = 0;
-                }
-              };
-
-              //Right
-              right.press = function() {
-                cat.vx = 5;
-              };
-              right.release = function() {
-                if (!left.isDown) {
-                  cat.vx = 0;
-                }
-              };
-
-              //Down
-              down.press = function() {
-                cat.vy = 5;
-              };
-              down.release = function() {
-                if (!up.isDown) {
-                  cat.vy = 0;
-                }
-              };
+              createKeyboardListeners(thisPlayer);
             }
           }
-          console.log('updating from db');
-          console.log(key);
-          console.log(data[key].xCoordinate);
           players[key].x = data[key].xCoordinate;
           players[key].y = data[key].yCoordinate;
         }
@@ -173,7 +161,6 @@ class Game extends Component {
     firebase.auth().onAuthStateChanged(function(user) {
       if (user && !userCreated()) {
         // User is signed in.
-
         console.log(`User id, ${user.uid}, connected`);
         setState(user.uid);
         database.ref('users/' + user.uid).set({
@@ -199,12 +186,12 @@ class Game extends Component {
       // render the stage container'
       this.frame = requestAnimationFrame(this.animate);
       // Update
-      if (cat) {
-        cat.x += cat.vx;
-        cat.y += cat.vy;
+      if (thisPlayer) {
+        thisPlayer.x += thisPlayer.vx;
+        thisPlayer.y += thisPlayer.vy;
         // Update user's location on DB.
         if (database) {
-          database.ref('users/' + userId).set({ xCoordinate: cat.x, yCoordinate: cat.y });
+          database.ref('users/' + userId).set({ xCoordinate: thisPlayer.x, yCoordinate: thisPlayer.y });
         }
       }
       this.renderer.render(this.stage);
