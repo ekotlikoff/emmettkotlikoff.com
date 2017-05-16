@@ -1,40 +1,72 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react'
+import * as firebase from 'firebase';
 import PIXI from "pixi.js"
 
-export default class Canvas extends Component {
+class Game extends Component {
+  constructor() {
+    super();
+    this.state = { userData: null };
+    this.componentDidMount = this.componentDidMount.bind(this);
+  }
+  componentDidMount() {
+    firebase.auth().signInAnonymously().catch(function(error) {
+      console.log(error.code);
+      console.log(error.message);
+    });
+    const database = firebase.database();
+    const setState = (uid) => {
+        this.setState({
+        userRef: database.ref('users/' + this.state.userId + '/xCoordinate'),
+        database,
+        userId: uid,
+      });
+    }
+    const userCreated = () => this.state.userRef;
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user && !userCreated()) {
+        // User is signed in.
 
-        /**
-        * Define our prop types
-        **/
-        static propTypes = {
-            zoomLevel: PropTypes.number.isRequired
-        };
+        console.log(`User id, ${user.uid}, connected`);
+        setState(user.uid);
+        database.ref('users/' + user.uid).set({
+          xCoordinate: 1,
+          yCoordinate: 1,
+        });
+        database.ref('users/' + user.uid).onDisconnect().remove();
+      } else {
+        // User is signed out.
+        console.log('signed out');
+      }
+    });
+  }
 
-        constructor( props ) {
-            super(props);
+  render() {
+    if (this.state.userRef) {
+      console.log('updating db');
+      this.state.database.ref('users/' + this.state.userId).transaction((userData) => {
+        console.log('user data found in transaction block: ' + userData);
+        if (userData) {
+          return { xCoordinate: userData.xCoordinate + 1, yCoordinate: userData.xCoordinate + 1 };
         }
-
-        /**
-        * In this case, componentDidMount is used to grab the canvas container ref, and
-        * and hook up the PixiJS renderer
-        **/
-        componentDidMount() {
-           //Setup PIXI Canvas in componentDidMount
-           this.renderer = PIXI.autoDetectRenderer(1366, 768);
-           this.refs.gameCanvas.appendChild(this.renderer.view);
-
-           // create the root of the scene graph
-           this.stage = new PIXI.Container();
-           this.stage.width = 1366;
-           this.stage.height = 768;
+        return null;
+      }
+      ,
+      function(error, committed, snapshot) {
+        if (error) {
+          console.log('Transaction failed abnormally!', error);
+        } else if (!committed) {
+          console.log('not committed');
+        } else {
+          console.log('committed!');
         }
-        /**
-        * Render our container that will store our PixiJS game canvas. Store the ref
-        **/
-        render() {
-            return (
-                    <div className="game-canvas-container" ref="gameCanvas">
-                    </div>
-             );
-        }
+      })
+    }
+    return (
+      <button onClick={() => {this.setState({ render: '' })}}>
+        game
+      </button>
+    )
+  }
 }
+
+export default Game
