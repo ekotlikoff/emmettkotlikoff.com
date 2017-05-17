@@ -102,7 +102,8 @@ class Game extends Component {
 
   initializePixiCanvas() {
     //Setup PIXI Canvas in componentDidMount
-    this.renderer = PIXI.autoDetectRenderer(1366, 768);
+    this.renderer = PIXI.autoDetectRenderer(1200, 600);
+    this.renderer.backgroundColor = 0xffffff;
     this.refs.gameCanvas.appendChild(this.renderer.view);
 
     // create the root of the scene graph
