@@ -70,6 +70,20 @@ class Game extends Component {
       this.players = {};
       this.loadUsersAndListenForChanges();
       this.initializePixiCanvas();
+      const fitToScreen = () => {
+        let w, h = null;
+        if (window.innerWidth / window.innerHeight >= this.props.aspectRatio) {
+           w = window.innerHeight * this.props.aspectRatio;
+           h = window.innerHeight;
+        } else {
+           w = window.innerWidth;
+           h = window.innerWidth / this.props.aspectRatio;
+        }
+        this.props.renderer.view.style.width = w + 'px';
+        this.props.renderer.view.style.height = h + 'px';
+      }
+      window.onresize = fitToScreen;
+      fitToScreen();
       this.animate();
     }
   }
@@ -108,6 +122,7 @@ Game.propTypes = {
   stage: PropTypes.object,
   userId: PropTypes.string,
   renderer: PropTypes.object,
+  aspectRatio: PropTypes.number,
 }
 
 export default Game
