@@ -1,11 +1,9 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import * as firebase from 'firebase';
 import * as PIXI from 'pixi.js';
 
-let players = {};
-let userRef = null;
 let database = null;
-let userId = null;
 
 const keyboard = (keyCode) => {
   let key = {};
@@ -93,83 +91,55 @@ let thisPlayer = null;
 class Game extends Component {
   constructor() {
     super();
-    this.componentDidMount = this.componentDidMount.bind(this);
     this.initializePixiCanvas = this.initializePixiCanvas.bind(this);
     this.animate = this.animate.bind(this);
-    this.loadImages = this.loadImages.bind(this);
-    this.connectToDB = this.connectToDB.bind(this);
+    this.loadUsersAndListenForChanges = this.loadUsersAndListenForChanges.bind(this);
   }
 
   initializePixiCanvas() {
-    //Setup PIXI Canvas in componentDidMount
-    this.renderer = PIXI.autoDetectRenderer(1200, 600);
-    this.renderer.backgroundColor = 0xffffff;
-    this.refs.gameCanvas.appendChild(this.renderer.view);
-
-    // create the root of the scene graph
-    this.stage = new PIXI.Container();
-  }
-
-  loadImages() {
-    PIXI.loader
-      .add("cat.png")
-      .load(this.createSprites);
-  }
-
-  connectToDB() {
-    firebase.auth().signInAnonymously().catch(function(error) {
-      console.log(error.code);
-      console.log(error.message);
-    });
-    const setState = (uid) => {
-      database = firebase.database();
-      userRef = database.ref('users/' + uid);
-      userId = uid;
+    if (this.props.renderer) {
+      this.refs.gameCanvas.appendChild(this.props.renderer.view);
     }
-    const userCreated = () => userRef;
+  }
+
+  loadUsersAndListenForChanges() {
+    if (! firebase.auth().currentUser || !this.props.stage || !this.props.renderer) {
+      return;
+    }
+    database = firebase.database();
     const updateUsers = (data) => {
-      for (const playerKey in players) {
-        if (players.hasOwnProperty(playerKey)) {
+      for (const playerKey in this.players) {
+        if (this.players.hasOwnProperty(playerKey)) {
           if (!data.hasOwnProperty(playerKey)) {
-            this.stage.removeChild(players[playerKey]);
-            delete players[playerKey];
+            this.props.stage.removeChild(this.players[playerKey]);
+            delete this.players[playerKey];
           }
         }
       }
       for (const key in data) {
         if (data.hasOwnProperty(key)) {
-          if (!players.hasOwnProperty(key)) {
-            players[key] = new PIXI.Sprite(
+          if (!this.players.hasOwnProperty(key)) {
+            this.players[key] = new PIXI.Sprite(
               PIXI.loader.resources["cat.png"].texture
             );
-            this.stage.addChild(players[key]);
-            if (key === userId) {
-              thisPlayer = players[key];
+            this.props.stage.addChild(this.players[key]);
+            if (key === this.props.userId) {
+              thisPlayer = this.players[key];
               thisPlayer.x = 0;
               thisPlayer.y = 0;
               thisPlayer.vx = 0;
               thisPlayer.vy = 0;
-              this.stage.addChild(thisPlayer);
+              this.props.stage.addChild(thisPlayer);
 
               createKeyboardListeners(thisPlayer);
             }
           }
-          players[key].x = data[key].xCoordinate;
-          players[key].y = data[key].yCoordinate;
+          this.players[key].x = data[key].xCoordinate;
+          this.players[key].y = data[key].yCoordinate;
         }
       }
     }
     firebase.auth().onAuthStateChanged(function(user) {
-      if (user && !userCreated()) {
-        // User is signed in.
-        console.log(`User id, ${user.uid}, connected`);
-        setState(user.uid);
-        database.ref('users/' + user.uid).set({
-          xCoordinate: 1,
-          yCoordinate: 1,
-        });
-        database.ref('users/' + user.uid).onDisconnect().remove();
-      }
       database.ref('users/').on('value', (snapshot) => {
         updateUsers(snapshot.val());
       })
@@ -177,25 +147,35 @@ class Game extends Component {
   }
 
   componentDidMount() {
-    this.connectToDB();
-    this.initializePixiCanvas();
-    this.loadImages();
-    this.animate();
+    if (this.props.userId) {
+      this.players = {};
+      this.loadUsersAndListenForChanges();
+      this.initializePixiCanvas();
+      this.animate();
+    }
+  }
+
+  componentWillUnmount() {
+    window.cancelAnimationFrame(this.frame);
   }
 
   animate() {
-      // render the stage container'
-      this.frame = requestAnimationFrame(this.animate);
+      if (!this.props.renderer) {
+        return;
+      }
+
       // Update
       if (thisPlayer) {
         thisPlayer.x += thisPlayer.vx;
         thisPlayer.y += thisPlayer.vy;
         // Update user's location on DB.
         if (database) {
-          database.ref('users/' + userId).set({ xCoordinate: thisPlayer.x, yCoordinate: thisPlayer.y });
+          database.ref('users/' + this.props.userId).set({ xCoordinate: thisPlayer.x, yCoordinate: thisPlayer.y });
         }
       }
-      this.renderer.render(this.stage);
+      this.props.renderer.render(this.props.stage);
+      // render the stage container'
+      this.frame = requestAnimationFrame(this.animate);
   }
 
   render() {
@@ -203,6 +183,12 @@ class Game extends Component {
       <div className='game-canvas-container' ref='gameCanvas' />
     )
   }
+}
+
+Game.propTypes = {
+  stage: PropTypes.object,
+  userId: PropTypes.string,
+  renderer: PropTypes.object,
 }
 
 export default Game

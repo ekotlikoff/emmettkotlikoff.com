@@ -11,8 +11,22 @@ import Header from './header'
 import Projects from './pages/projects'
 import Resume from './pages/Resume'
 import Game from './pages/Game';
+import { initializePixi } from './pixiUtils';
+import { connectToDB } from './databaseUtils';
 
 class App extends Component {
+  constructor() {
+    super();
+    this.componentDidMount = this.componentDidMount.bind(this);
+    this.createRenderer = this.createRenderer.bind(this);
+
+    this.state = { renderer: null, stage: null };
+  }
+
+  createRenderer() {
+    this.setState(initializePixi(this));
+  }
+
   componentWillMount() {
     var config = {
       apiKey: 'AIzaSyBfLOYLx9S_Kmh6QFTYLx_sz3pl7-J3HjE',
@@ -23,7 +37,13 @@ class App extends Component {
       messagingSenderId: '743241622263'
     };
     firebase.initializeApp(config);
-    console.log('app initialized');
+    connectToDB().then((user) => {
+      this.setState({ userId: user.uid });
+    })
+  }
+
+  componentDidMount() {
+    this.createRenderer();
   }
 
   render() {
@@ -36,7 +56,8 @@ class App extends Component {
               <Switch>
                 <Route path='/aboutMe' component={Resume} />
                 <Route path='/projects' component={Projects} />
-                <Route path='/experimental' component={Game} />
+                <Route path='/experimental' render={() =>
+                  <Game {...this.state} />} />
                 <Route component={Resume} />
               </Switch>
             </Col>
