@@ -1,3 +1,6 @@
+// TODO keep game properties centralized, not here.
+const velocity = 5;
+
 const keyboard = (keyCode, window) => {
   let key = {};
   key.code = keyCode;
@@ -35,46 +38,61 @@ const keyboard = (keyCode, window) => {
   return key;
 }
 
-export const createKeyboardListeners = (cat, window) => {
+export const createKeyboardListeners = (thisPlayer, window, renderer) => {
   const left = keyboard(37, window),
       up = keyboard(38, window),
       right = keyboard(39, window),
       down = keyboard(40, window);
 
   left.press = function() {
-    cat.vx = -5;
+    thisPlayer.vx = -1 * velocity;
   };
 
   left.release = function() {
     if (!right.isDown) {
-      cat.vx = 0;
+      thisPlayer.vx = 0;
     }
   };
 
   up.press = function() {
-    cat.vy = -5;
+    thisPlayer.vy = -1 * velocity;
   };
   up.release = function() {
     if (!down.isDown) {
-      cat.vy = 0;
+      thisPlayer.vy = 0;
     }
   };
 
   right.press = function() {
-    cat.vx = 5;
+    thisPlayer.vx = velocity;
   };
   right.release = function() {
     if (!left.isDown) {
-      cat.vx = 0;
+      thisPlayer.vx = 0;
     }
   };
 
   down.press = function() {
-    cat.vy = 5;
+    thisPlayer.vy = velocity;
   };
   down.release = function() {
     if (!up.isDown) {
-      cat.vy = 0;
+      thisPlayer.vy = 0;
     }
   };
+  const moveTowardFinger = (event) => {
+    const deltaX = event.data.global.x - thisPlayer.x;
+    const deltaY = event.data.global.y - thisPlayer.y;
+    const magnitude = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+
+    thisPlayer.vx = velocity * deltaX / magnitude;
+    thisPlayer.vy = velocity * deltaY / magnitude;
+  }
+  renderer.plugins.interaction.on('touchstart', moveTowardFinger);
+  renderer.plugins.interaction.on('touchmove', moveTowardFinger);
+  renderer.plugins.interaction.on('touchend', () => {
+    thisPlayer.vx = 0;
+    thisPlayer.vy = 0;
+    console.log('end');
+  });
 };

@@ -50,7 +50,7 @@ class Game extends Component {
               thisPlayer.vy = 0;
               this.props.stage.addChild(thisPlayer);
 
-              createKeyboardListeners(thisPlayer, window);
+              createKeyboardListeners(thisPlayer, window, this.props.renderer);
             }
           }
           this.players[key].x = data[key].xCoordinate;
