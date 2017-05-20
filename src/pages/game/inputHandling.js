@@ -93,6 +93,5 @@ export const createKeyboardListeners = (thisPlayer, window, renderer) => {
   renderer.plugins.interaction.on('touchend', () => {
     thisPlayer.vx = 0;
     thisPlayer.vy = 0;
-    console.log('end');
   });
 };
