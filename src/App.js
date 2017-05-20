@@ -10,7 +10,7 @@ import * as firebase from 'firebase';
 import Header from './header'
 import Projects from './pages/projects'
 import Resume from './pages/Resume'
-import Game from './pages/Game';
+import Game from './pages/game/Game';
 import { initializePixi } from './pixiUtils';
 import { connectToDB } from './databaseUtils';
 
