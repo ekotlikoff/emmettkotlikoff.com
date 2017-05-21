@@ -47,10 +47,11 @@ class App extends Component {
   }
 
   signOutIdleUsers() {
-    const activityDetector = createActivityDetector({ timeToIdle: 60000 });
+    const activityDetector = createActivityDetector({ timeToIdle: 60000, inactivityEvents: null });
     const signOut = () => {
-      this.setState({ signedOut: true });
-      firebase.database().ref('users/' + this.state.userId).remove();
+      this.setState({ signedOut: true }, () => {
+        firebase.database().ref('users/' + this.state.userId).remove()
+      });
     };
     activityDetector.on('idle', function() {
       signOut();

@@ -23,47 +23,40 @@ class Game extends Component {
   }
 
   loadUsersAndListenForChanges() {
-    if (! firebase.auth().currentUser || !this.props.stage || !this.props.renderer) {
+    if (!firebase.auth().currentUser ||
+        !this.props.stage ||
+        !this.props.renderer ||
+        this.props.signedOut) {
       return;
     }
     database = firebase.database();
-    const updateUsers = (data) => {
-      for (const playerKey in this.players) {
-        if (this.players.hasOwnProperty(playerKey)) {
-          if (!data.hasOwnProperty(playerKey)) {
-            this.props.stage.removeChild(this.players[playerKey]);
-            delete this.players[playerKey];
-          }
-        }
-      }
-      for (const key in data) {
-        if (data.hasOwnProperty(key)) {
-          if (!this.players.hasOwnProperty(key)) {
-            this.players[key] = new PIXI.Sprite(
-              PIXI.loader.resources["cat.png"].texture
-            );
-            this.props.stage.addChild(this.players[key]);
-            if (key === this.props.userId) {
-              thisPlayer = this.players[key];
-              thisPlayer.x = 0;
-              thisPlayer.y = 0;
-              thisPlayer.vx = 0;
-              thisPlayer.vy = 0;
-              this.props.stage.addChild(thisPlayer);
+    database.ref('users/').on('child_changed', (snapshot) => {
+      // Player moved
+      this.players[snapshot.key].x = snapshot.val().xCoordinate;
+      this.players[snapshot.key].y = snapshot.val().yCoordinate;
+    });
+    database.ref('users/').on('child_added', (snapshot) => {
+      // Player signed in
+      this.players[snapshot.key] = new PIXI.Sprite(
+        PIXI.loader.resources["cat.png"].texture
+      );
+      this.props.stage.addChild(this.players[snapshot.key]);
+      if (snapshot.key === this.props.userId) {
+        thisPlayer = this.players[snapshot.key];
+        thisPlayer.x = 0;
+        thisPlayer.y = 0;
+        thisPlayer.vx = 0;
+        thisPlayer.vy = 0;
+        this.props.stage.addChild(thisPlayer);
 
-              createKeyboardListeners(thisPlayer, window, this.props.renderer);
-            }
-          }
-          this.players[key].x = data[key].xCoordinate;
-          this.players[key].y = data[key].yCoordinate;
-        }
+        createKeyboardListeners(thisPlayer, window, this.props.renderer);
       }
-    }
-    if(!this.props.signedOut) {
-      database.ref('users/').on('value', (snapshot) => {
-        updateUsers(snapshot.val());
-      });
-    };
+    });
+    database.ref('users/').on('child_removed', (snapshot) => {
+      // Player signed out
+      this.props.stage.removeChild(this.players[snapshot.key]);
+      delete this.players[snapshot.key];
+    });
   }
 
   componentDidMount() {
