@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import * as firebase from 'firebase';
 import * as PIXI from 'pixi.js';
+import { Button } from 'reactstrap';
 import { createKeyboardListeners } from './inputHandling';
 
 let database = null;
@@ -16,7 +17,7 @@ class Game extends Component {
   }
 
   initializePixiCanvas() {
-    if (this.props.renderer) {
+    if (this.props.renderer && this.refs.gameCanvas) {
       this.refs.gameCanvas.appendChild(this.props.renderer.view);
     }
   }
@@ -58,11 +59,11 @@ class Game extends Component {
         }
       }
     }
-    firebase.auth().onAuthStateChanged(function(user) {
+    if(!this.props.signedOut) {
       database.ref('users/').on('value', (snapshot) => {
         updateUsers(snapshot.val());
-      })
-    });
+      });
+    };
   }
 
   componentDidMount() {
@@ -102,7 +103,7 @@ class Game extends Component {
         thisPlayer.x += thisPlayer.vx;
         thisPlayer.y += thisPlayer.vy;
         // Update user's location on DB.
-        if (database) {
+        if(database && !this.props.signedOut) {
           database.ref('users/' + this.props.userId).set({ xCoordinate: thisPlayer.x, yCoordinate: thisPlayer.y });
         }
       }
@@ -112,9 +113,10 @@ class Game extends Component {
   }
 
   render() {
-    return (
-      <div className='game-canvas-container' ref='gameCanvas' />
-    )
+    const element = this.props.signedOut ?
+      <Button onClick={() => window.location.reload(false)}>You have been signed out due to inactivity, click here to log back in </Button> :
+      <div className='game-canvas-container' ref='gameCanvas' />;
+    return element;
   }
 }
 
@@ -123,6 +125,7 @@ Game.propTypes = {
   userId: PropTypes.string,
   renderer: PropTypes.object,
   aspectRatio: PropTypes.number,
+  signedOut: PropTypes.bool,
 }
 
 export default Game

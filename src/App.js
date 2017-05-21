@@ -7,6 +7,7 @@ import {
 import { Col } from 'reactstrap';
 import './App.css'
 import * as firebase from 'firebase';
+import createActivityDetector from 'activity-detector';
 import Header from './header'
 import Projects from './pages/projects'
 import Resume from './pages/Resume'
@@ -17,14 +18,8 @@ import { connectToDB } from './databaseUtils';
 class App extends Component {
   constructor() {
     super();
-    this.componentDidMount = this.componentDidMount.bind(this);
-    this.createRenderer = this.createRenderer.bind(this);
 
     this.state = { renderer: null, stage: null };
-  }
-
-  createRenderer() {
-    this.setState(initializePixi(this));
   }
 
   componentWillMount() {
@@ -44,6 +39,23 @@ class App extends Component {
 
   componentDidMount() {
     this.createRenderer();
+    this.signOutIdleUsers();
+  }
+
+  createRenderer() {
+    this.setState(initializePixi(this));
+  }
+
+  signOutIdleUsers() {
+    const activityDetector = createActivityDetector({ timeToIdle: 60000 });
+    const signOut = () => {
+      this.setState({ signedOut: true });
+      firebase.database().ref('users/' + this.state.userId).remove();
+    };
+    activityDetector.on('idle', function() {
+      signOut();
+      firebase.auth().signOut();
+    });
   }
 
   render() {
