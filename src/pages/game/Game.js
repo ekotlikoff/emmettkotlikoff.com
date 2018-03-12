@@ -47,7 +47,6 @@ class Game extends Component {
         thisPlayer.y = 0;
         thisPlayer.vx = 0;
         thisPlayer.vy = 0;
-        this.props.stage.addChild(thisPlayer);
 
         createKeyboardListeners(thisPlayer, window, this.props.renderer);
       }

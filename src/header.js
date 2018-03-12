@@ -6,11 +6,13 @@ import { Link } from 'react-router-dom'
 const isActive = (headerItem, currentPath) => {
   switch (headerItem) {
     case ('projects'):
-    return currentPath === 'projects';
+      return currentPath === 'projects';
+    case ('snake'):
+      return currentPath === 'snake';
     case ('experimental'):
-    return currentPath === 'experimental';
+      return currentPath === 'experimental';
     default:
-    return currentPath === 'aboutMe';
+      return currentPath === 'aboutMe';
   }
 }
 
@@ -36,6 +38,9 @@ const Header = ({ match }) => (
         </NavItem>
         <NavItem>
           <NavLink tag={Link} to='/projects' active={isActive('projects', match.params.page)}>Projects</NavLink>
+        </NavItem>
+        <NavItem>
+          <NavLink tag={Link} to='/snake' active={isActive('snake', match.params.page)}>Snake</NavLink>
         </NavItem>
         <NavItem>
           <NavLink tag={Link} to='/experimental' active={isActive('experimental', match.params.page)}>Experimental</NavLink>

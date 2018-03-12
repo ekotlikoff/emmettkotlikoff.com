@@ -4,13 +4,14 @@ import {
   Route,
   Switch,
 } from 'react-router-dom'
-import { Col } from 'reactstrap';
+import { Container } from 'reactstrap';
 import './App.css'
 import * as firebase from 'firebase';
 import createActivityDetector from 'activity-detector';
 import Header from './header'
 import Projects from './pages/projects'
 import Resume from './pages/Resume'
+import Snake from './pages/snake/Snake'
 import Game from './pages/game/Game';
 import { initializePixi } from './pixiUtils';
 import { connectToDB } from './databaseUtils';
@@ -39,15 +40,15 @@ class App extends Component {
 
   componentDidMount() {
     this.createRenderer();
-    this.signOutIdleUsers();
+    this.detectAndSignOutIdleUsers();
   }
 
   createRenderer() {
     this.setState(initializePixi(this));
   }
 
-  signOutIdleUsers() {
-    const activityDetector = createActivityDetector({ timeToIdle: 60000, inactivityEvents: null });
+  detectAndSignOutIdleUsers() {
+    const activityDetector = createActivityDetector({ timeToIdle: 60000, inactivityEvents: [], autoInit: true });
     const signOut = () => {
       this.setState({ signedOut: true }, () => {
         firebase.database().ref('users/' + this.state.userId).remove()
@@ -65,15 +66,17 @@ class App extends Component {
         <div>
           <Route path='/:page?' component={Header} />
           <Route component={() => (
-            <Col id='background' style={{ minHeight: 'calc(100vh - 150px)' }}>
+            <Container id='background' style={{ minHeight: 'calc(100vh - 150px)' }}>
               <Switch>
                 <Route path='/aboutMe' component={Resume} />
                 <Route path='/projects' component={Projects} />
+                <Route path='/snake' render={() =>
+                  <Snake userId={this.state.userId} signedOut={this.state.signedOut} />} />
                 <Route path='/experimental' render={() =>
                   <Game {...this.state} />} />
                 <Route component={Resume} />
               </Switch>
-            </Col>
+            </Container>
           )} />
         </div>
       </Router>
