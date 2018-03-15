@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import * as PIXI from 'pixi.js';
 import PropTypes from 'prop-types';
-import { Button, Row, Col } from 'reactstrap';
+import { Button, Input, InputGroup, InputGroupAddon, Row, Col } from 'reactstrap';
 import * as firebase from 'firebase';
 import { initializePixiCanvas } from '../../pixiUtils';
 import Model from './Model.js';
@@ -9,27 +9,30 @@ import Score from './Score.js';
 import Highscores from './Highscores.js';
 import * as Constants from './Constants.js'
 
-// TODO handle scoring, storage of highscores, and display of highscores
-
-let state;
-let deltaSinceLastUpdate = 0;
-
-let model;
-
 class Snake extends Component {
   constructor() {
     super();
 
-    this.state = { score: 0, highscores: [] };
+    this.state = {
+      score: 0,
+      highscores: [],
+      handlingHighscore: false,
+      username: '',
+      takenUsernames: {},
+      promptForUsernameMessage: Constants.DEFAULT_USERNAME_PROMPT
+    };
+    this.deltaSinceLastUpdate = 0;
     this.initializePixiCanvas = this.initializePixiCanvas.bind(this);
     this.update = this.update.bind(this);
     this.initializeGame = this.initializeGame.bind(this);
     this.keyDownHandler = this.keyDownHandler.bind(this);
     this.mobileTouchHandler = this.mobileTouchHandler.bind(this);
-    this.handleTouch = this.handleTouch.bind(this);
     this.updateScore = this.updateScore.bind(this);
     this.getHighscores = this.getHighscores.bind(this);
     this.handleHighscore = this.handleHighscore.bind(this);
+    this.submitHighscore = this.submitHighscore.bind(this);
+    this.updateUsername = this.updateUsername.bind(this);
+    this.resetHandleHighscoreState = this.resetHandleHighscoreState.bind(this);
     this.pauseGame = this.pauseGame.bind(this);
     this.unpauseGame = this.unpauseGame.bind(this);
     this.handleEndOfGame = this.handleEndOfGame.bind(this);
@@ -37,27 +40,14 @@ class Snake extends Component {
 
   componentWillUnmount() {
     document.removeEventListener("keydown", this.keyDownHandler, false);
-    document.removeEventListener("touchstart", this.mobileTouchHandler, false);
-    if (state.ticker) {
-      state.ticker.stop();
+    this.destroyGame();
+    if (this.ticker) {
+      this.ticker.stop();
     }
   }
 
   componentDidMount() {
     document.addEventListener("keydown", this.keyDownHandler, false);
-    document.addEventListener("touchstart", this.mobileTouchHandler, false);
-    state = initializePixiCanvas(this, Constants.CANVAS_WIDTH, Constants.CANVAS_HEIGHT);
-    model = new Model(
-      Constants.screenToGameCoordinates(Constants.INITIAL_X),
-      Constants.screenToGameCoordinates(Constants.INITIAL_Y),
-      Constants.INITIAL_DIRECTION,
-      Constants.INITIAL_UPDATES_PER_SECOND,
-      Constants.ADDITIONAL_UPDATES_PER_SECOND_PER_SNAKE_PIXEL,
-      Constants.CANVAS_WIDTH,
-      Constants.CANVAS_HEIGHT,
-      state.stage,
-      this.updateScore
-    );
     this.initializeGame();
   }
 
@@ -65,90 +55,115 @@ class Snake extends Component {
     if (this.props.userId) {
       this.getHighscores();
       this.initializePixiCanvas();
+      this.stage.interactive = true;
+      this.stage.hitArea = new PIXI.Rectangle(0, 0, Constants.CANVAS_WIDTH, Constants.CANVAS_HEIGHT);
+      this.stage.tap = this.mobileTouchHandler;
       const fitToScreen = () => {
         let w, h = null;
         // 198 pixels in header attributes
-        let totalWindowHeight = window.innerHeight - 198;
-        if (window.innerWidth / totalWindowHeight >= state.aspectRatio) {
-           w = totalWindowHeight * state.aspectRatio;
+        let totalWindowHeight = window.innerHeight - Constants.HEADER_HEIGHT - Constants.BOTTOM_MARGIN;
+        if (window.innerWidth / totalWindowHeight >= this.aspectRatio) {
+           w = totalWindowHeight * this.aspectRatio;
            h = totalWindowHeight;
         } else {
            w = window.innerWidth;
-           h = window.innerWidth / state.aspectRatio;
+           h = window.innerWidth / this.aspectRatio;
         }
-        // state.renderer.resize(w, h);
-        state.renderer.view.style.width = w + 'px';
-        state.renderer.view.style.height = h + 'px';
+        this.renderer.view.style.width = w + 'px';
+        this.renderer.view.style.height = h + 'px';
       }
       window.onresize = fitToScreen;
       fitToScreen();
-      if (!state.ticker) {
-        state.ticker = new PIXI.ticker.Ticker();
-        state.ticker.stop();
-        state.ticker.add(this.update);
+      if (!this.ticker) {
+        this.ticker = new PIXI.ticker.Ticker();
+        this.ticker.stop();
+        this.ticker.add(this.update);
       }
-      state.ticker.start();
-      state.renderer.render(state.stage);
+      this.ticker.start();
     }
   }
 
+  destroyGame() {
+    if (this.stage) {
+      this.stage.destroy(true);
+    }
+    this.stage = null;
+    if (this.renderer) {
+      this.refs.snakeCanvas.removeChild(this.renderer.view);
+    }
+    if (this.renderer) {
+      this.renderer.destroy(true);
+    }
+    this.renderer = null;
+  }
+
   initializePixiCanvas() {
-    if (state.renderer && this.refs.snakeCanvas) {
-      this.refs.snakeCanvas.appendChild(state.renderer.view);
+    const pixieState = initializePixiCanvas(this, Constants.CANVAS_WIDTH, Constants.CANVAS_HEIGHT);
+    this.stage = pixieState.stage;
+    this.renderer = pixieState.renderer;
+    this.renderer.backgroundColor = Constants.BACKGROUND_COLOR;
+    this.aspectRatio = pixieState.aspectRatio;
+    this.model = new Model(
+      Constants.screenToGameCoordinates(Constants.INITIAL_X),
+      Constants.screenToGameCoordinates(Constants.INITIAL_Y),
+      Constants.INITIAL_DIRECTION,
+      Constants.INITIAL_UPDATES_PER_SECOND,
+      Constants.ADDITIONAL_UPDATES_PER_SECOND_PER_SNAKE_PIXEL,
+      Constants.CANVAS_WIDTH,
+      Constants.CANVAS_HEIGHT,
+      this.stage,
+      this.updateScore
+    );
+    if (this.refs.snakeCanvas) {
+      this.refs.snakeCanvas.appendChild(this.renderer.view);
     }
   }
 
   pauseGame() {
-    state.ticker.stop();
+    this.ticker.stop();
   }
 
   unpauseGame() {
-    this.setState({ wasPaused: true }, () => state.ticker.start());
+    this.setState({ wasPaused: true }, () => this.ticker.start());
   }
 
   keyDownHandler(e) {
     if (Constants.INPUT_KEYS.includes(e.keyCode)) {
       e.preventDefault();
-      model.setNextDirection(e.keyCode);
+      this.model.setNextDirection(e.keyCode);
     }
   }
 
-  mobileTouchHandler(e) {
-    for (let i = 0; i < e.touches.length; i++) {
-      const touch = e.touches[i];
-      this.handleTouch(touch);
-    }
-  }
-
-  handleTouch(touch) {
-    const snakeHead = model.getSnake()[0];
+  mobileTouchHandler(touch) {
+    const snakeHead = this.model.getSnake()[0];
+    const point = touch.data.getLocalPosition(this.stage);
     switch (snakeHead.direction) {
       case Constants.UP:
-        if (snakeHead.position.x > touch.screenX) {
-          model.setNextDirection(Constants.LEFT);
-        } else if (snakeHead.position.x < touch.screenX) {
-          model.setNextDirection(Constants.RIGHT);
+        if (snakeHead.position.x > point.x) {
+          this.model.setNextDirection(Constants.LEFT);
+        } else if (snakeHead.position.x < point.x) {
+          this.model.setNextDirection(Constants.RIGHT);
         }
         break;
       case Constants.DOWN:
-        if (snakeHead.position.x > touch.screenX) {
-          model.setNextDirection(Constants.LEFT);
-        } else if (snakeHead.position.x < touch.screenX) {
-          model.setNextDirection(Constants.RIGHT);
+        if (snakeHead.position.x > point.x) {
+          this.model.setNextDirection(Constants.LEFT);
+        } else if (snakeHead.position.x < point.x) {
+          this.model.setNextDirection(Constants.RIGHT);
         }
         break;
       case Constants.LEFT:
-        if (snakeHead.position.y > touch.screenY) {
-          model.setNextDirection(Constants.UP);
-        } else if (snakeHead.position.y < touch.screenY) {
-          model.setNextDirection(Constants.DOWN);
+        if (snakeHead.position.y > point.y) {
+          this.model.setNextDirection(Constants.UP);
+        } else if (snakeHead.position.y < point.y) {
+          this.model.setNextDirection(Constants.DOWN);
         }
         break;
       case Constants.RIGHT:
-        if (snakeHead.position.y > touch.screenY) {
-          model.setNextDirection(Constants.UP);
-        } else if (snakeHead.position.y < touch.screenY) {
-          model.setNextDirection(Constants.DOWN);
+        if (snakeHead.position.y > point.y) {
+          this.model.setNextDirection(Constants.UP);
+        } else if (snakeHead.position.y < point.y) {
+          this.model.setNextDirection(Constants.DOWN);
         }
         break;
       default:
@@ -164,36 +179,6 @@ class Snake extends Component {
     return username && username.length < 15 && /^[a-zA-Z0-9]+$/.test(username) && !preexistingUsernames[username];
   }
 
-  handleHighscore() {
-    const database = firebase.database();
-    const score = this.state.score;
-    database.ref('snake/highscores/').orderByValue().once('value').then((snapshot) => {
-      let toReplaceKey;
-      let usernames = {};
-      snapshot.forEach((child) => {
-        if (score > child.val()) {
-          if (!toReplaceKey) {
-            toReplaceKey = child.key;
-          }
-        }
-        usernames[child.key] = true;
-      });
-      if (snapshot.numChildren() < 10 || toReplaceKey) {
-        let username;
-        username = window.prompt("Highscore!  What's your name?");
-        while (!this.isValidUsername(username, usernames)) {
-          username = window.prompt("Highscore! Username: " + username + " is being used, what's your name?");
-        }
-        if (snapshot.numChildren() >= 10) {
-          database.ref('snake/highscores/' + toReplaceKey).remove();
-        }
-        database.ref('snake/highscores/' + username).set(score);
-        this.getHighscores();
-      }
-      this.unpauseGame();
-    });
-  }
-
   getHighscores() {
     const database = firebase.database();
     let highscores = [];
@@ -206,36 +191,85 @@ class Snake extends Component {
     });
   }
 
-  handleEndOfGame() {
-    if (model.didLoseGame()) {
-      state.ticker.stop();
-      this.handleHighscore();
-      model.resetState();
-    } else if (model.didWinGame()) {
-      console.log('You win !');
-      state.ticker.stop();
-      this.handleHighscore();
-      model.resetState();
+  updateUsername(e) {
+    this.setState({ username: e.target.value });
+  }
+
+  handleHighscore() {
+    this.pauseGame();
+    const database = firebase.database();
+    const score = this.state.score;
+    database.ref('snake/highscores/').orderByValue().once('value').then((highschoreSnapshot) => {
+      let toReplaceKey;
+      let takenUsernames = {};
+      highschoreSnapshot.forEach((child) => {
+        if (score > child.val()) {
+          if (!toReplaceKey) {
+            toReplaceKey = child.key;
+          }
+        }
+        takenUsernames[child.key] = true;
+      });
+      if (highschoreSnapshot.numChildren() < 10 || toReplaceKey) {
+        this.setState({ handlingHighscore: true, takenUsernames, usernameKeyToReplace: toReplaceKey, numHighscores: highschoreSnapshot.numChildren() });
+      } else {
+        this.model.resetState();
+        this.unpauseGame();
+      }
+    });
+  }
+
+  submitHighscore() {
+    const database = firebase.database();
+    if (!this.isValidUsername(this.state.username, this.state.takenUsernames)) {
+      this.setState({ promptForUsernameMessage: Constants.USERNAME_TAKEN_PROMPT, username: '' });
+    } else {
+      if (this.state.numHighscores >= 10) {
+        database.ref('snake/highscores/' + this.state.usernameKeyToReplace).remove();
+      }
+      database.ref('snake/highscores/' + this.state.username).set(this.state.score);
+      this.model.resetState();
+      this.getHighscores();
+      this.resetHandleHighscoreState();
+      this.unpauseGame();
     }
   }
 
+  resetHandleHighscoreState() {
+    this.setState({ handlingHighscore: false, promptForUsernameMessage: Constants.DEFAULT_USERNAME_PROMPT });
+  }
+
+  handleEndOfGame() {
+    if (this.model.didLoseGame()) {
+      this.handleHighscore();
+      return true;
+    } else if (this.model.didWinGame()) {
+      console.log('You win !');
+      this.handleHighscore();
+      return true;
+    }
+    return false;
+  }
+
   update(delta) {
-    deltaSinceLastUpdate += state.ticker.elapsedMS;
-    if (deltaSinceLastUpdate > 1000 / model.getUpdatesPerSecond()) {
-      model.handleNextDirection();
-      model.handleDirectionChanges();
-      model.moveSnake();
-      model.handleSnackCollision();
-      model.createSnackIfEaten();
-      model.handleSnakeGotSnack();
-      this.handleEndOfGame();
-      model.updateUpdatesPerSecond();
-      deltaSinceLastUpdate -= 1000 / model.getUpdatesPerSecond();
-      state.renderer.render(state.stage);
+    this.deltaSinceLastUpdate += this.ticker.elapsedMS;
+    if (this.deltaSinceLastUpdate > 1000 / this.model.getUpdatesPerSecond()) {
+      this.model.handleNextDirection();
+      this.model.handleDirectionChanges();
+      this.model.moveSnake();
+      this.model.handleSnackCollision();
+      this.model.createSnackIfEaten();
+      this.model.handleSnakeGotSnack();
+      if (this.handleEndOfGame()) {
+        return;
+      }
+      this.model.updateUpdatesPerSecond();
+      this.deltaSinceLastUpdate -= 1000 / this.model.getUpdatesPerSecond();
+      this.renderer.render(this.stage);
     }
     if (this.state.wasPaused) {
-      // If we were paused deltaSinceLastUpdate will be huge, to prevent many updates quickly we reset this.
-      deltaSinceLastUpdate = 0;
+      // If we were paused this.deltaSinceLastUpdate will be huge, to prevent many updates quickly we reset this.
+      this.deltaSinceLastUpdate = 0;
       this.setState({ wasPaused: false })
     }
   }
@@ -253,6 +287,16 @@ class Snake extends Component {
           <Score score={this.state.score}/>
         </Col>
       </Row>
+      {this.state.handlingHighscore && !this.props.signedOut ?
+        <Row>
+          <Col>
+            <InputGroup>
+              <InputGroupAddon color="secondary"><Button onClick={this.submitHighscore}>Submit</Button></InputGroupAddon>
+              <Input placeholder={this.state.promptForUsernameMessage} type='text' onChange={this.updateUsername} value={this.state.username} />
+            </InputGroup>
+          </Col>
+        </Row> : null
+      }
       <Row>
        {element}
       </Row>

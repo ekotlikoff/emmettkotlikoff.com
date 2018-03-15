@@ -46,7 +46,6 @@ const Model = (() => {
 	    }
 
 		resetState() {
-			// TODO clear all snakePixels, snacks etc from PIXIE stage. (Is clear the method)
 			stage.removeChildren();
 		    snake = [createSnakePixel(initialXGameCoordinate, initialYGameCoordinate, initialDirection)];
 			directionChanges = [];
@@ -124,6 +123,10 @@ const Model = (() => {
 
 		setNextDirection(nextDir) {
 			nextDirection = nextDir;
+		}
+
+		getNextDirection(nextDir) {
+			return nextDirection;
 		}
 
 		getSnake() {

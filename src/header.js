@@ -18,7 +18,7 @@ const isActive = (headerItem, currentPath) => {
 
 const Header = ({ match }) => (
   <div style={{ height: '150px' }}>
-    <div className='App-header' style={{ textAlign: 'center' }}>
+    <div style={{ textAlign: 'center', paddingTop: '15' }}>
       <div style={{ marginBottom: '18px' }}>
         <h2>Emmett Kotlikoff</h2>
         <h7 id='link'>
@@ -34,7 +34,7 @@ const Header = ({ match }) => (
       </div>
       <Nav tabs>
         <NavItem>
-          <NavLink tag={Link} to='/aboutMe' active={isActive('aboutMe', match.params.page)}>About Me</NavLink>
+          <NavLink tag={Link} to='/aboutMe' active={isActive('aboutMe', match.params.page)}>Me</NavLink>
         </NavItem>
         <NavItem>
           <NavLink tag={Link} to='/projects' active={isActive('projects', match.params.page)}>Projects</NavLink>

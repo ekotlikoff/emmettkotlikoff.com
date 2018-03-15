@@ -1,6 +1,9 @@
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 800;
 
+export const HEADER_HEIGHT = 198;
+export const BOTTOM_MARGIN = 10;
+
 export const UP = 38;
 export const DOWN = 40;
 export const LEFT = 37;
@@ -14,8 +17,9 @@ export const INITIAL_DIRECTION = DOWN;
 export const INITIAL_UPDATES_PER_SECOND = 3;
 export const ADDITIONAL_UPDATES_PER_SECOND_PER_SNAKE_PIXEL = .1;
 
-export const SNAKE_COLOR = "0XFF0000";
-export const SNACK_COLOR = "0X00FF00";
+export const SNAKE_COLOR = 0xFF0000;
+export const SNACK_COLOR = 0x84a460;
+export const BACKGROUND_COLOR = 0xADD8E6;
 export const PIXEL_LENGTH = 20;
 export const PIXEL_GAME_WIDTH = 1;
 
@@ -26,3 +30,7 @@ export const screenToGameCoordinates = (pixels) => {
 export const gameCoordinatesToScreen = (gameCoordinates) => {
 	return gameCoordinates * PIXEL_LENGTH;
 }
+
+
+export const DEFAULT_USERNAME_PROMPT = "Highscore! What's your name?";
+export const USERNAME_TAKEN_PROMPT = "Name already taken. What's your name?";
