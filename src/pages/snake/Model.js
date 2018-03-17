@@ -182,10 +182,10 @@ const Model = (() => {
 
 	
 	function collidesWith(pixel1, pixel2) {
-		return pixel1.position.x < pixel2.position.x + Constants.PIXEL_LENGTH * Constants.PIXEL_GAME_WIDTH &&
-			   pixel1.position.x + Constants.PIXEL_LENGTH * Constants.PIXEL_GAME_WIDTH > pixel2.position.x &&
-	           pixel1.position.y < pixel2.position.y + Constants.PIXEL_LENGTH * Constants.PIXEL_GAME_WIDTH &&
-	           Constants.PIXEL_LENGTH * Constants.PIXEL_GAME_WIDTH + pixel1.position.y > pixel2.position.y;
+		return pixel1.position.x < pixel2.position.x + Constants.PIXEL_GAME_WIDTH &&
+			   pixel1.position.x + Constants.PIXEL_GAME_WIDTH > pixel2.position.x &&
+	           pixel1.position.y < pixel2.position.y + Constants.PIXEL_GAME_WIDTH &&
+	           Constants.PIXEL_GAME_WIDTH + pixel1.position.y > pixel2.position.y;
 	}
 
 	function createSnack() {
@@ -196,7 +196,7 @@ const Model = (() => {
 		}
 		let snack = new PIXI.Graphics();
 	    snack.beginFill(Constants.SNACK_COLOR);
-	    snack.drawRect(0, 0, Constants.PIXEL_GAME_WIDTH * Constants.PIXEL_LENGTH, Constants.PIXEL_GAME_WIDTH * Constants.PIXEL_LENGTH);
+	    snack.drawRect(0, 0, Constants.PIXEL_GAME_WIDTH * Constants.PIXEL_SCREEN_LENGTH, Constants.PIXEL_GAME_WIDTH * Constants.PIXEL_SCREEN_LENGTH);
     	snack.endFill();
     	snack.position.x = Constants.gameCoordinatesToScreen(location.x);
     	snack.position.y = Constants.gameCoordinatesToScreen(location.y);
@@ -206,9 +206,17 @@ const Model = (() => {
 
 	function getValidLocations() {
 		let validLocations = [];
+		const getSnakePixelGameCoordinates = (snakePixel) => {
+			return {
+				position: {
+					x: Constants.screenToGameCoordinates(snakePixel.position.x),
+					y: Constants.screenToGameCoordinates(snakePixel.position.y)
+				}
+			};
+		}
 		for (let x = 0; x < Constants.screenToGameCoordinates(gameWidth); x++) {
 			for (let y = 0; y < Constants.screenToGameCoordinates(gameHeight); y++) {
-				if (!snake.some(snakePixel => collidesWith(snakePixel, { position: { x, y } }))) {
+				if (!snake.some(snakePixel => collidesWith(getSnakePixelGameCoordinates(snakePixel), { position: { x, y } }))) {
 					validLocations.push({ x, y });
 				}
 			}
@@ -220,7 +228,7 @@ const Model = (() => {
 		let snakePixel = new PIXI.Graphics();
 		snakePixel.direction = direction;
 	    snakePixel.beginFill(Constants.SNAKE_COLOR);
-	    snakePixel.drawRect(0, 0, Constants.PIXEL_GAME_WIDTH * Constants.PIXEL_LENGTH, Constants.PIXEL_GAME_WIDTH * Constants.PIXEL_LENGTH);
+	    snakePixel.drawRect(0, 0, Constants.PIXEL_GAME_WIDTH * Constants.PIXEL_SCREEN_LENGTH, Constants.PIXEL_GAME_WIDTH * Constants.PIXEL_SCREEN_LENGTH);
     	snakePixel.position.x = Constants.gameCoordinatesToScreen(x);
     	snakePixel.position.y = Constants.gameCoordinatesToScreen(y)
     	snakePixel.endFill();

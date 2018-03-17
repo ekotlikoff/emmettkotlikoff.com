@@ -20,15 +20,15 @@ export const ADDITIONAL_UPDATES_PER_SECOND_PER_SNAKE_PIXEL = .1;
 export const SNAKE_COLOR = 0xFF0000;
 export const SNACK_COLOR = 0x84a460;
 export const BACKGROUND_COLOR = 0xADD8E6;
-export const PIXEL_LENGTH = 20;
+export const PIXEL_SCREEN_LENGTH = 20;
 export const PIXEL_GAME_WIDTH = 1;
 
 export const screenToGameCoordinates = (pixels) => {
-	return pixels / PIXEL_LENGTH;
+	return pixels / PIXEL_SCREEN_LENGTH;
 }
 
 export const gameCoordinatesToScreen = (gameCoordinates) => {
-	return gameCoordinates * PIXEL_LENGTH;
+	return gameCoordinates * PIXEL_SCREEN_LENGTH;
 }
 
 
