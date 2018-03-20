@@ -22,6 +22,7 @@ class Snake extends Component {
       promptForUsernameMessage: Constants.DEFAULT_USERNAME_PROMPT
     };
     this.deltaSinceLastUpdate = 0;
+    this.isActive = false;
 
     this.initializePixiCanvas = this.initializePixiCanvas.bind(this);
     this.update = this.update.bind(this);
@@ -54,6 +55,10 @@ class Snake extends Component {
 
   initializeGame() {
     if (this.props.userId) {
+      if (this.isActive) {
+        return;
+      }
+      this.isActive = true;
       this.getHighscores();
       this.initializePixiCanvas();
       this.stage.interactive = true;
@@ -85,21 +90,19 @@ class Snake extends Component {
   }
 
   destroyGame() {
-    if (this.stage) {
-      this.stage.destroy(true);
+    if (!this.isActive) {
+      return;
     }
+    this.isActive = false;
+    this.stage.destroy(true);
     this.stage = null;
-    if (this.renderer) {
-      this.refs.snakeCanvas.removeChild(this.renderer.view);
-    }
-    if (this.renderer) {
-      this.renderer.destroy(true);
-    }
+    this.refs.snakeCanvas.removeChild(this.renderer.view);
+    this.renderer.destroy(true);
     this.renderer = null;
   }
 
   initializePixiCanvas() {
-    const pixieState = initializePixiCanvas(this, Constants.CANVAS_WIDTH, Constants.CANVAS_HEIGHT);
+    const pixieState = initializePixiCanvas(Constants.CANVAS_WIDTH, Constants.CANVAS_HEIGHT);
     this.stage = pixieState.stage;
     this.renderer = pixieState.renderer;
     this.renderer.backgroundColor = Constants.BACKGROUND_COLOR;

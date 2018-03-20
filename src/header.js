@@ -18,7 +18,7 @@ const isActive = (headerItem, currentPath) => {
 
 const Header = ({ match }) => (
   <div style={{ height: '150px' }}>
-    <div style={{ textAlign: 'center', paddingTop: '15' }}>
+    <div style={{ textAlign: 'center', paddingTop: '15px' }}>
       <div style={{ marginBottom: '18px' }}>
         <h2>Emmett Kotlikoff</h2>
         <h7 id='link'>

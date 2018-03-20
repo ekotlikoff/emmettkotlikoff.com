@@ -1,6 +1,3 @@
-// TODO keep game properties centralized, not here.
-const velocity = 5;
-
 const keyboard = (keyCode, window) => {
   let key = {};
   key.code = keyCode;
@@ -38,7 +35,7 @@ const keyboard = (keyCode, window) => {
   return key;
 }
 
-export const createKeyboardListeners = (thisPlayer, window, renderer) => {
+export const createKeyboardListeners = (thisPlayer, window, renderer, velocity) => {
   const left = keyboard(37, window),
       up = keyboard(38, window),
       right = keyboard(39, window),
@@ -103,3 +100,8 @@ export const createKeyboardListeners = (thisPlayer, window, renderer) => {
 
   return [left, right, up, down];
 };
+
+export const destroyKeyboardListeners = (key) => {
+  window.removeEventListener('keydown', key.downHandler, false);
+  window.removeEventListener('keyup', key.upHandler, false);
+}

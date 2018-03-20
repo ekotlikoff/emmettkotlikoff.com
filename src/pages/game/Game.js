@@ -3,14 +3,18 @@ import PropTypes from 'prop-types';
 import * as firebase from 'firebase';
 import * as PIXI from 'pixi.js';
 import { Button } from 'reactstrap';
-import { createKeyboardListeners } from './inputHandling';
-import { initializePixi } from '../../pixiUtils';
+import * as Constants from './Constants';
+import { createKeyboardListeners, destroyKeyboardListeners } from './inputHandling';
+import { initializePixiCanvas } from '../../pixiUtils';
 
 class Game extends Component {
   constructor() {
     super();
 
-    this.initializePixiCanvas = this.initializePixiCanvas.bind(this);
+    this.isActive = false;
+    this.usersRef = firebase.database().ref('users/');
+
+    this.initializeGame = this.initializeGame.bind(this);
     this.animate = this.animate.bind(this);
     this.loadUsersAndListenForChanges = this.loadUsersAndListenForChanges.bind(this);
     this.destroyGame = this.destroyGame.bind(this);
@@ -19,8 +23,7 @@ class Game extends Component {
   componentDidMount() {
     if (this.props.userId) {
       this.players = {};
-      this.initializePixiCanvas();
-      this.loadUsersAndListenForChanges();
+      this.initializeGame();
       const fitToScreen = () => {
         let w, h = null;
         if (window.innerWidth / window.innerHeight >= this.aspectRatio) {
@@ -41,52 +44,44 @@ class Game extends Component {
 
   componentWillUnmount() {
     window.cancelAnimationFrame(this.frame);
-    if (this.keys) {
-       this.keys.forEach(key => {
-        window.removeEventListener('keydown', key.downHandler, false);
-        window.removeEventListener('keyup', key.upHandler, false);
-      });
-    }
     this.destroyGame();
   }
 
-  initializePixiCanvas() {
-    const pixieState = initializePixi(this.storeTextures);
+  initializeGame() {
+    if (this.isActive) {
+      return;
+    }
+    this.isActive = true;
+    const pixieState = initializePixiCanvas(Constants.CANVAS_WIDTH, Constants.CANVAS_HEIGHT);
     this.stage = pixieState.stage;
     this.renderer = pixieState.renderer;
     this.aspectRatio = pixieState.aspectRatio;
-    if (this.refs.gameCanvas) {
-      this.refs.gameCanvas.appendChild(this.renderer.view);
-    }
+    this.refs.gameCanvas.appendChild(this.renderer.view);
+    this.loadUsersAndListenForChanges();
   }
 
   destroyGame() {
-    if (this.stage) {
-      this.stage.destroy(true);
+    if (!this.isActive) {
+      return;
     }
+    this.isActive = false;
+    this.stage.destroy(true);
     this.stage = null;
-    if (this.renderer) {
-      this.refs.gameCanvas.removeChild(this.renderer.view);
-    }
-    if (this.renderer) {
-      this.renderer.destroy(true);
-    }
+    this.refs.gameCanvas.removeChild(this.renderer.view);
+    this.renderer.destroy(true);
     this.renderer = null;
-    if (this.database) {
-      this.database.ref('users/').off();
-    }
+    this.usersRef.off();
+    this.keys.forEach(destroyKeyboardListeners);
   }
 
   loadUsersAndListenForChanges() {
-    this.database = firebase.database();
-
-    this.database.ref('users/').on('child_changed', (snapshot) => {
+    this.usersRef.on('child_changed', (snapshot) => {
       // Player moved
       this.players[snapshot.key].x = snapshot.val().xCoordinate;
       this.players[snapshot.key].y = snapshot.val().yCoordinate;
     });
 
-    this.database.ref('users/').on('child_added', (snapshot) => {
+    this.usersRef.on('child_added', (snapshot) => {
       // Player signed in
       this.players[snapshot.key] = new PIXI.Sprite.fromImage('cat.png');
       this.stage.addChild(this.players[snapshot.key]);
@@ -97,11 +92,11 @@ class Game extends Component {
         this.thisPlayer.vx = 0;
         this.thisPlayer.vy = 0;
 
-        this.keys = createKeyboardListeners(this.thisPlayer, window, this.renderer);
+        this.keys = createKeyboardListeners(this.thisPlayer, window, this.renderer, Constants.PLAYER_VELOCITY);
       }
     });
 
-    this.database.ref('users/').on('child_removed', (snapshot) => {
+    this.usersRef.on('child_removed', (snapshot) => {
       // Player signed out
       this.stage.removeChild(this.players[snapshot.key]);
       delete this.players[snapshot.key];
@@ -118,8 +113,8 @@ class Game extends Component {
         this.thisPlayer.x += this.thisPlayer.vx;
         this.thisPlayer.y += this.thisPlayer.vy;
         // Update user's location on DB.
-        if(this.database && !this.props.signedOut) {
-          this.database.ref('users/' + this.props.userId).set({ xCoordinate: this.thisPlayer.x, yCoordinate: this.thisPlayer.y });
+        if(this.usersRef && !this.props.signedOut) {
+          this.usersRef.child(this.props.userId).set({ xCoordinate: this.thisPlayer.x, yCoordinate: this.thisPlayer.y });
         }
       }
       this.renderer.render(this.stage);
