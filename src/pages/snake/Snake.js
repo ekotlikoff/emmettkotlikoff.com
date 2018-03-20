@@ -22,6 +22,7 @@ class Snake extends Component {
       promptForUsernameMessage: Constants.DEFAULT_USERNAME_PROMPT
     };
     this.deltaSinceLastUpdate = 0;
+
     this.initializePixiCanvas = this.initializePixiCanvas.bind(this);
     this.update = this.update.bind(this);
     this.initializeGame = this.initializeGame.bind(this);
@@ -210,7 +211,7 @@ class Snake extends Component {
         }
         takenUsernames[child.key] = true;
       });
-      if (highschoreSnapshot.numChildren() < 10 || toReplaceKey) {
+      if (highschoreSnapshot.numChildren() < Constants.NUM_HIGHSCORES || toReplaceKey) {
         this.setState({ handlingHighscore: true, takenUsernames, usernameKeyToReplace: toReplaceKey, numHighscores: highschoreSnapshot.numChildren() });
       } else {
         this.model.resetState();
@@ -275,9 +276,19 @@ class Snake extends Component {
   }
 
   render() {
-    const element = this.props.signedOut ?
+    const gameElement = this.props.signedOut ?
       <Button onClick={() => window.location.reload(false)}>You have been signed out due to inactivity, click here to log back in </Button> :
       <div className='game-canvas-container' ref='snakeCanvas' />;
+    const highscoreInputElement = this.state.handlingHighscore && !this.props.signedOut ?
+        <Row>
+          <Col>
+            <InputGroup>
+              <InputGroupAddon color="secondary"><Button onClick={this.submitHighscore}>Submit</Button></InputGroupAddon>
+              <Input placeholder={this.state.promptForUsernameMessage} type='text' onChange={this.updateUsername} value={this.state.username} />
+            </InputGroup>
+          </Col>
+        </Row> : null;
+        
     return <div>
       <Row>
         <Col>
@@ -287,18 +298,9 @@ class Snake extends Component {
           <Score score={this.state.score}/>
         </Col>
       </Row>
-      {this.state.handlingHighscore && !this.props.signedOut ?
-        <Row>
-          <Col>
-            <InputGroup>
-              <InputGroupAddon color="secondary"><Button onClick={this.submitHighscore}>Submit</Button></InputGroupAddon>
-              <Input placeholder={this.state.promptForUsernameMessage} type='text' onChange={this.updateUsername} value={this.state.username} />
-            </InputGroup>
-          </Col>
-        </Row> : null
-      }
+       {highscoreInputElement}
       <Row>
-       {element}
+       {gameElement}
       </Row>
     </div>;
   }

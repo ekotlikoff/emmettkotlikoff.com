@@ -30,10 +30,10 @@ const keyboard = (keyCode, window) => {
 
   //Attach event listeners
   window.addEventListener(
-    "keydown", key.downHandler.bind(key), false
+    "keydown", key.downHandler, false
   );
   window.addEventListener(
-    "keyup", key.upHandler.bind(key), false
+    "keyup", key.upHandler, false
   );
   return key;
 }
@@ -88,10 +88,18 @@ export const createKeyboardListeners = (thisPlayer, window, renderer) => {
     thisPlayer.vx = velocity * deltaX / magnitude;
     thisPlayer.vy = velocity * deltaY / magnitude;
   }
+  renderer.plugins.interaction.on('keydown', moveTowardFinger);
+  renderer.plugins.interaction.on('touchmove', moveTowardFinger);
+  renderer.plugins.interaction.on('touchend', () => {
+    thisPlayer.vx = 0;
+    thisPlayer.vy = 0;
+  });
   renderer.plugins.interaction.on('touchstart', moveTowardFinger);
   renderer.plugins.interaction.on('touchmove', moveTowardFinger);
   renderer.plugins.interaction.on('touchend', () => {
     thisPlayer.vx = 0;
     thisPlayer.vy = 0;
   });
+
+  return [left, right, up, down];
 };

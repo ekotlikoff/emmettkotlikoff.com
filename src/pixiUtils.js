@@ -1,9 +1,6 @@
 import * as PIXI from 'pixi.js';
 
-export const initializePixi = (app) => {
-  PIXI.loader
-    .add("cat.png")
-    .load(app.createSprites);
+export const initializePixi = (spritesCreatedCallback) => {
   // create the root of the scene graph
   const width = 1200;
   const height = 600;

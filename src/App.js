@@ -5,22 +5,21 @@ import {
   Switch,
 } from 'react-router-dom'
 import { Container } from 'reactstrap';
-import './App.css'
 import * as firebase from 'firebase';
 import createActivityDetector from 'activity-detector';
+import './App.css'
 import Header from './header'
 import Projects from './pages/projects'
 import Resume from './pages/Resume'
 import Snake from './pages/snake/Snake'
 import Game from './pages/game/Game';
-import { initializePixi } from './pixiUtils';
 import { connectToDB } from './databaseUtils';
 
 class App extends Component {
   constructor() {
     super();
 
-    this.state = { renderer: null, stage: null };
+    this.state = { userId: null, signedOut: false };
   }
 
   componentWillMount() {
@@ -39,12 +38,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.createRenderer();
     this.detectAndSignOutIdleUsers();
-  }
-
-  createRenderer() {
-    this.setState(initializePixi(this));
   }
 
   detectAndSignOutIdleUsers() {

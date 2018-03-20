@@ -4,76 +4,34 @@ import * as firebase from 'firebase';
 import * as PIXI from 'pixi.js';
 import { Button } from 'reactstrap';
 import { createKeyboardListeners } from './inputHandling';
-
-let database = null;
-let thisPlayer = null;
+import { initializePixi } from '../../pixiUtils';
 
 class Game extends Component {
   constructor() {
     super();
+
     this.initializePixiCanvas = this.initializePixiCanvas.bind(this);
     this.animate = this.animate.bind(this);
     this.loadUsersAndListenForChanges = this.loadUsersAndListenForChanges.bind(this);
-  }
-
-  initializePixiCanvas() {
-    if (this.props.renderer && this.refs.gameCanvas) {
-      this.refs.gameCanvas.appendChild(this.props.renderer.view);
-    }
-  }
-
-  loadUsersAndListenForChanges() {
-    if (!firebase.auth().currentUser ||
-        !this.props.stage ||
-        !this.props.renderer ||
-        this.props.signedOut) {
-      return;
-    }
-    database = firebase.database();
-    database.ref('users/').on('child_changed', (snapshot) => {
-      // Player moved
-      this.players[snapshot.key].x = snapshot.val().xCoordinate;
-      this.players[snapshot.key].y = snapshot.val().yCoordinate;
-    });
-    database.ref('users/').on('child_added', (snapshot) => {
-      // Player signed in
-      this.players[snapshot.key] = new PIXI.Sprite(
-        PIXI.loader.resources["cat.png"].texture
-      );
-      this.props.stage.addChild(this.players[snapshot.key]);
-      if (snapshot.key === this.props.userId) {
-        thisPlayer = this.players[snapshot.key];
-        thisPlayer.x = 0;
-        thisPlayer.y = 0;
-        thisPlayer.vx = 0;
-        thisPlayer.vy = 0;
-
-        createKeyboardListeners(thisPlayer, window, this.props.renderer);
-      }
-    });
-    database.ref('users/').on('child_removed', (snapshot) => {
-      // Player signed out
-      this.props.stage.removeChild(this.players[snapshot.key]);
-      delete this.players[snapshot.key];
-    });
+    this.destroyGame = this.destroyGame.bind(this);
   }
 
   componentDidMount() {
     if (this.props.userId) {
       this.players = {};
-      this.loadUsersAndListenForChanges();
       this.initializePixiCanvas();
+      this.loadUsersAndListenForChanges();
       const fitToScreen = () => {
         let w, h = null;
-        if (window.innerWidth / window.innerHeight >= this.props.aspectRatio) {
-           w = window.innerHeight * this.props.aspectRatio;
+        if (window.innerWidth / window.innerHeight >= this.aspectRatio) {
+           w = window.innerHeight * this.aspectRatio;
            h = window.innerHeight;
         } else {
            w = window.innerWidth;
-           h = window.innerWidth / this.props.aspectRatio;
+           h = window.innerWidth / this.aspectRatio;
         }
-        this.props.renderer.view.style.width = w + 'px';
-        this.props.renderer.view.style.height = h + 'px';
+        this.renderer.view.style.width = w + 'px';
+        this.renderer.view.style.height = h + 'px';
       }
       window.onresize = fitToScreen;
       fitToScreen();
@@ -83,23 +41,88 @@ class Game extends Component {
 
   componentWillUnmount() {
     window.cancelAnimationFrame(this.frame);
+    if (this.keys) {
+       this.keys.forEach(key => {
+        window.removeEventListener('keydown', key.downHandler, false);
+        window.removeEventListener('keyup', key.upHandler, false);
+      });
+    }
+    this.destroyGame();
+  }
+
+  initializePixiCanvas() {
+    const pixieState = initializePixi(this.storeTextures);
+    this.stage = pixieState.stage;
+    this.renderer = pixieState.renderer;
+    this.aspectRatio = pixieState.aspectRatio;
+    if (this.refs.gameCanvas) {
+      this.refs.gameCanvas.appendChild(this.renderer.view);
+    }
+  }
+
+  destroyGame() {
+    if (this.stage) {
+      this.stage.destroy(true);
+    }
+    this.stage = null;
+    if (this.renderer) {
+      this.refs.gameCanvas.removeChild(this.renderer.view);
+    }
+    if (this.renderer) {
+      this.renderer.destroy(true);
+    }
+    this.renderer = null;
+    if (this.database) {
+      this.database.ref('users/').off();
+    }
+  }
+
+  loadUsersAndListenForChanges() {
+    this.database = firebase.database();
+
+    this.database.ref('users/').on('child_changed', (snapshot) => {
+      // Player moved
+      this.players[snapshot.key].x = snapshot.val().xCoordinate;
+      this.players[snapshot.key].y = snapshot.val().yCoordinate;
+    });
+
+    this.database.ref('users/').on('child_added', (snapshot) => {
+      // Player signed in
+      this.players[snapshot.key] = new PIXI.Sprite.fromImage('cat.png');
+      this.stage.addChild(this.players[snapshot.key]);
+      if (snapshot.key === this.props.userId) {
+        this.thisPlayer = this.players[snapshot.key];
+        this.thisPlayer.x = 0;
+        this.thisPlayer.y = 0;
+        this.thisPlayer.vx = 0;
+        this.thisPlayer.vy = 0;
+
+        this.keys = createKeyboardListeners(this.thisPlayer, window, this.renderer);
+      }
+    });
+
+    this.database.ref('users/').on('child_removed', (snapshot) => {
+      // Player signed out
+      this.stage.removeChild(this.players[snapshot.key]);
+      delete this.players[snapshot.key];
+    });
   }
 
   animate() {
-      if (!this.props.renderer) {
+      if (!this.renderer) {
         return;
       }
 
       // Update
-      if (thisPlayer) {
-        thisPlayer.x += thisPlayer.vx;
-        thisPlayer.y += thisPlayer.vy;
+      if (this.thisPlayer) {
+        this.thisPlayer.x += this.thisPlayer.vx;
+        this.thisPlayer.y += this.thisPlayer.vy;
         // Update user's location on DB.
-        if(database && !this.props.signedOut) {
-          database.ref('users/' + this.props.userId).set({ xCoordinate: thisPlayer.x, yCoordinate: thisPlayer.y });
+        if(this.database && !this.props.signedOut) {
+          this.database.ref('users/' + this.props.userId).set({ xCoordinate: this.thisPlayer.x, yCoordinate: this.thisPlayer.y });
         }
       }
-      this.props.renderer.render(this.props.stage);
+      this.renderer.render(this.stage);
       // render the stage container'
       this.frame = requestAnimationFrame(this.animate);
   }

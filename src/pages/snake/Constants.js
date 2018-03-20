@@ -17,6 +17,8 @@ export const INITIAL_DIRECTION = DOWN;
 export const INITIAL_UPDATES_PER_SECOND = 3;
 export const ADDITIONAL_UPDATES_PER_SECOND_PER_SNAKE_PIXEL = .1;
 
+export const NUM_HIGHSCORES = 10;
+
 export const SNAKE_COLOR = 0xFF0000;
 export const SNACK_COLOR = 0x84a460;
 export const BACKGROUND_COLOR = 0xADD8E6;
