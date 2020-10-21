@@ -47,7 +47,7 @@ class Projects extends Component {
       <Row>
         <Col style={{ minWidth: '375px' }} sm={{ offset: 1 }}>
           <Row>
-            <iframe src='https://player.vimeo.com/video/214382832' width='640' height='480' frameBorder='0' allowFullScreen />
+            <iframe src='https://player.vimeo.com/video/214382832' title='oscar-video' width='640' height='480' frameBorder='0' allowFullScreen />
           </Row>
         </Col>
         <Col>
@@ -69,11 +69,7 @@ class Projects extends Component {
           </Col>
           <Col sm={{ offset: 1, size: 10 }}>
             <Row>
-              Oscar is a charming and humorous game Emmett developed with a team of four programmers and two designers.
-              As lead developer, he was responsible for communicating technical feasibility
-              of any potential features to the non-technical side of the team as well as
-              delegation of programming tasks and the final say on technical design decisions.
-              The game won Most Polished out of the 18 competing teams.
+              Jump into the world of Oscar, a charming flamingo on the run.
             </Row>
           </Col>
         </Col>

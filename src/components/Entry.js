@@ -44,7 +44,7 @@ Entry.propTypes = {
     startDate: PropTypes.string.isRequired,
     endDate: PropTypes.string.isRequired,
     summary: PropTypes.string.isRequired,
-    highlights: module.exports.bulletPoints,
+    highlights: PropTypes.array,
   }),
 }
 

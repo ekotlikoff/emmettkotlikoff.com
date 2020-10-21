@@ -15,6 +15,9 @@ class Game extends Component {
     this.usersRef = firebase.database().ref('users/');
 
     this.initializeGame = this.initializeGame.bind(this);
+    this.onChildAdded = this.onChildAdded.bind(this);
+    this.onChildChanged = this.onChildChanged.bind(this);
+    this.onChildRemoved = this.onChildRemoved.bind(this);
     this.animate = this.animate.bind(this);
     this.loadUsersAndListenForChanges = this.loadUsersAndListenForChanges.bind(this);
     this.destroyGame = this.destroyGame.bind(this);
@@ -70,37 +73,47 @@ class Game extends Component {
     this.refs.gameCanvas.removeChild(this.renderer.view);
     this.renderer.destroy(true);
     this.renderer = null;
-    this.usersRef.off();
-    this.keys.forEach(destroyKeyboardListeners);
+    this.usersRef.off('child_added', this.onChildAdded);
+    this.usersRef.off('child_changed', this.onChildChanged);
+    this.usersRef.off('child_removed', this.onChildRemoved);
+    if (this.keys) {
+      this.keys.forEach(destroyKeyboardListeners);
+    }
   }
 
   loadUsersAndListenForChanges() {
-    this.usersRef.on('child_changed', (snapshot) => {
-      // Player moved
-      this.players[snapshot.key].x = snapshot.val().xCoordinate;
-      this.players[snapshot.key].y = snapshot.val().yCoordinate;
-    });
+    this.usersRef.on('child_added', this.onChildAdded);
+    this.usersRef.on('child_changed', this.onChildChanged);
+    this.usersRef.on('child_removed', this.onChildRemoved);
+  }
 
-    this.usersRef.on('child_added', (snapshot) => {
-      // Player signed in
-      this.players[snapshot.key] = new PIXI.Sprite.fromImage('cat.png');
-      this.stage.addChild(this.players[snapshot.key]);
-      if (snapshot.key === this.props.userId) {
-        this.thisPlayer = this.players[snapshot.key];
-        this.thisPlayer.x = 0;
-        this.thisPlayer.y = 0;
-        this.thisPlayer.vx = 0;
-        this.thisPlayer.vy = 0;
+  onChildAdded(snapshot) {
+    // Player signed in
+    this.players[snapshot.key] = new PIXI.Sprite.fromImage('cat.png');
+    this.stage.addChild(this.players[snapshot.key]);
+    if (snapshot.key === this.props.userId) {
+      this.thisPlayer = this.players[snapshot.key];
+      this.thisPlayer.x = 0;
+      this.thisPlayer.y = 0;
+      this.thisPlayer.vx = 0;
+      this.thisPlayer.vy = 0;
 
-        this.keys = createKeyboardListeners(this.thisPlayer, window, this.renderer, Constants.PLAYER_VELOCITY);
-      }
-    });
+      this.keys = createKeyboardListeners(
+        this.thisPlayer, window, this.renderer, Constants.PLAYER_VELOCITY
+      );
+    }
+  }
 
-    this.usersRef.on('child_removed', (snapshot) => {
-      // Player signed out
-      this.stage.removeChild(this.players[snapshot.key]);
-      delete this.players[snapshot.key];
-    });
+  onChildChanged(snapshot) {
+    // Player moved
+    this.players[snapshot.key].x = snapshot.val().xCoordinate;
+    this.players[snapshot.key].y = snapshot.val().yCoordinate;
+  }
+
+  onChildRemoved(snapshot) {
+    // Player signed out
+    this.stage.removeChild(this.players[snapshot.key]);
+    delete this.players[snapshot.key];
   }
 
   animate() {
