@@ -1,0 +1,65 @@
+<!doctype html>
+<!--
+Copyright 2018 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+
+<head>
+	<meta charset="utf-8">
+  <link rel="icon" href="favicon.png">
+	<title>Emmett Kotlikoff</title>
+
+    <style type="text/css">
+      .body {
+        overflow: hidden;
+        position: relative;
+        margin: 0;
+      }
+
+      .bg {
+        opacity: 0.6;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: auto;
+      }
+
+      .fg {
+        position: relative;
+      }
+    </style>
+</head>
+
+<body class="body">
+	<!--
+	Add the following polyfill for Microsoft Edge 17/18 support:
+	<script src="https://cdn.jsdelivr.net/npm/text-encoding@0.7.0/lib/encoding.min.js"></script>
+	(see https://caniuse.com/#feat=textencoder)
+	-->
+	<script src="wasm_exec.js"></script>
+	<script>
+		if (!WebAssembly.instantiateStreaming) { // polyfill
+			WebAssembly.instantiateStreaming = async (resp, importObject) => {
+				const source = await (await resp).arrayBuffer();
+				return await WebAssembly.instantiate(source, importObject);
+			};
+		}
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("lib.wasm"), go.importObject).then((result) => {
+                go.run(result.instance);
+            });
+	</script>
+
+  <img
+    class="bg"
+    src="background.jpeg"
+  >
+  <div class="fg">
+    Hello
+  </div>
+</body>
+
+</html>
