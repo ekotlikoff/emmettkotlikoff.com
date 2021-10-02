@@ -1,13 +1,15 @@
-Design:
+# Run
+* `make`
 
-Some pretty homepage picture
-
-Tabs
-* Chess TODO either iframe into a separate hosted chess server or host the chess
-  server alongside the site
-* Poker TODO need to make the poker server :)
-* Oscar TODO does the download actually work?
-* Github
-* LinkedIn
-* Resume
-* Email
+# Design
+* A pretty homepage picture
+* Tabs
+  * Chess
+    * Iframe into gochess
+  * Poker
+  * Oscar
+    * Downloads and trailer
+  * Github
+  * LinkedIn
+  * Resume
+  * Email
