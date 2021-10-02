@@ -15,6 +15,8 @@ github.com/Ekotlikoff/gochess v0.0.0-20211002142846-73d83495c51f h1:GxzVG31QYw38
 github.com/Ekotlikoff/gochess v0.0.0-20211002142846-73d83495c51f/go.mod h1:+6UJWZddzsz+3ZT2iB9bzOfatBEEnl9H4X4XTSvQ0W4=
 github.com/Ekotlikoff/gochess v0.0.0-20211002151209-0722e0cb8dd2 h1:YM90BSpcVY7SkU5ddImAeRrPeBGZO/LVDJnmuLyLpXA=
 github.com/Ekotlikoff/gochess v0.0.0-20211002151209-0722e0cb8dd2/go.mod h1:+6UJWZddzsz+3ZT2iB9bzOfatBEEnl9H4X4XTSvQ0W4=
+github.com/Ekotlikoff/gochess v0.0.0-20211002202448-899c8eacf9d8 h1:zjrdcuQIi5GotDNWQg7SaKoTOnB0uHWkE5xWpFMp/9k=
+github.com/Ekotlikoff/gochess v0.0.0-20211002202448-899c8eacf9d8/go.mod h1:+6UJWZddzsz+3ZT2iB9bzOfatBEEnl9H4X4XTSvQ0W4=
 github.com/HdrHistogram/hdrhistogram-go v1.1.0/go.mod h1:yDgFjdqOqDEKOvasDdhWNXYg9BVp4O+o5f6V/ehm6Oo=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
