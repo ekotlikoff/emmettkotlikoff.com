@@ -42,10 +42,9 @@ func main() {
 	mux.Handle("/chess/", gatewayProxy)
 	var err error
 	if config.TLS {
-		err = http.ListenAndServeTLS(":"+strconv.Itoa(443),
-			config.CertFile,
-			config.KeyFile,
-			mux)
+		err = http.ListenAndServeTLS(
+			":"+strconv.Itoa(443), config.CertFile, config.KeyFile, mux,
+		)
 	} else {
 		err = http.ListenAndServe(":"+strconv.Itoa(80), mux)
 	}
