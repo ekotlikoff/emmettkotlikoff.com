@@ -1,4 +1,4 @@
-run_local_package := github.com/Ekotlikoff/emmettkotlikoff.com/cmd
+run_local_package := github.com/Ekotlikoff/emmettkotlikoff.com/cmd/website
 webclient_package := github.com/Ekotlikoff/gochess/internal/client/web
 
 all:
