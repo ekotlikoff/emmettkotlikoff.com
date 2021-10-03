@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+  <link rel="icon" href="favicon.png">
+	<title>Emmett Kotlikoff</title>
+
+    <style type="text/css">
+      html, .bg {
+        position: relative;
+        margin: 0;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+      }
+
+      .bg:before {
+        content: ' ';
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.6;
+        background-image: url('background.jpeg');
+        background-repeat: repeat-y;
+        background-size: 100% 100%;
+      }
+
+      .fg {
+        position: relative;
+      }
+
+      .menu {
+        display: inline;
+        position: absolute;
+        width: 500px;
+        height: 20px;
+        z-index: 15;
+        left: 50%;
+        margin: 0 0 0 -250px;
+      }
+
+      a {
+        text-decoration: none;
+        color: #000;
+      }
+
+      li {
+        display: inline;
+        margin-right: 10px;
+      }
+    </style>
+</head>
+
+<body class="bg">
+  <div class="fg">
+    <div style="height: 20px">
+      <nav class="menu">
+        <ul style="margin: 0; display: inline;">
+          <li><a href="index.html">Home</a></li>
+          <li><strong>Chess</strong></li>
+          <li><a href="poker.html">Poker</a></li>
+          <li><a href="oscar.html">Oscar</a></li>
+          <li><a href="https://github.com/Ekotlikoff">Github</a></li>
+          <li><a href="https://www.linkedin.com/in/emmettkotlikoff/">LinkedIn</a></li>
+          <li><a href="emmett.kotlikoff.pdf">Resume</a></li>
+          <li><a href="mailto: ekotlikoff@gmail.com">Email</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div style="margin-left: 20px">
+      <iframe title="gochess" width="600" height="650" frameBorder="0"
+        src="/chess">
+      </iframe>
+    </div>
+  </div>
+</body>
+
+</html>
