@@ -18,12 +18,12 @@
 
 sudo -u ekotlikoff bash
 cd ~/go/src/gochess
-git pull origin master
+git pull origin main
 cd ~/go/src/emmettkotlikoff.com
-git pull origin master
+git pull origin main
 go build github.com/Ekotlikoff/emmettkotlikoff.com/cmd/website
 cd ~/rust/rustchess
-git pull origin master
+git pull origin main
 cargo build --release
 exit
 sudo systemctl restart rustchess
