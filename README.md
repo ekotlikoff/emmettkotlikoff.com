@@ -1,7 +1,7 @@
-# Run
+## Run
 * `make`
 
-# Design
+## Design
 * A pretty homepage picture
 * Tabs
   * Chess

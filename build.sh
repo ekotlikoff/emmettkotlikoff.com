@@ -5,7 +5,7 @@
 #  - Add ekotlikoff to the group `sudo usermod -a -G emmettkotlikoff_cert ekotlikoff`
 #  - Add root to the group `sudo usermod -a -G emmettkotlikoff_cert root`
 #  - install go + git + repo or just the emmettkotlikoff.com binary if already
-#    built with go build github.com/Ekotlikoff/emmettkotlikoff.com/cmd/website
+#    built with go build github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
 #  - install certbot and configure: https://certbot.eff.org/lets-encrypt/centosrhel8-other
 #    - `sudo yum install certbot`
 #    - `sudo certbot certonly --webroot` or `sudo certbot certonly --standalone` if
@@ -15,17 +15,38 @@
 #    - Change the relevant letsencrypt directory ownership `sudo chmod -R 750
 #      /etc/letsencrypt/live/; sudo chmod -R 750 /etc/letsencrypt/archive/`
 #  - Create systemd service with AmbientCapabilities=CAP_NET_BIND_SERVICE, e.g.
+#
+#```
+#[Unit]
+#Description=gochess
+#ConditionPathExists=/home/ekotlikoff/go/bin/website
+#After=network.target
+#
+#[Service]
+#Type=simple
+#User=ekotlikoff
+#Group=emmettkotlikoff_cert
+#WorkingDirectory=/home/ekotlikoff/
+#ExecStart=/home/ekotlikoff/go/bin/website
+#AmbientCapabilities=CAP_NET_BIND_SERVICE
+#Restart=on-failure
+#RestartSec=15
+#StandardOutput=syslog
+#StandardError=syslog
+#SyslogIdentifier=gochess
+#
+#[Install]
+#WantedBy=multi-user.target
+#```
 
-sudo -u ekotlikoff bash
-cd ~/go/src/gochess
-git pull origin main
-cd ~/go/src/emmettkotlikoff.com
-git pull origin main
-go build github.com/Ekotlikoff/emmettkotlikoff.com/cmd/website
-cd ~/rust/rustchess
-git pull origin main
+cd /home/ekotlikoff/go/src/gochess
+git pull --ff-only origin main
+cd /home/ekotlikoff/go/src/emmettkotlikoff.com
+git pull --ff-only origin main
+/usr/local/go/bin/go build github.com/Ekotlikoff/emmettkotlikoff.com/cmd/website
+cd /home/ekotlikoff/rust/rustchess
+git pull --ff-only origin main
 cargo build --release
-exit
-sudo systemctl restart rustchess
+sudo systemctl restart chessengine
 sleep 5
 sudo systemctl restart gochess
