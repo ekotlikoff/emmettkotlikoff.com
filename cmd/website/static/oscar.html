@@ -33,44 +33,32 @@
         position: relative;
       }
 
-      .menu {
-        display: inline;
-        position: absolute;
-        width: 500px;
-        height: 20px;
-        z-index: 15;
-        left: 50%;
-        margin: 0 0 0 -250px;
+      .nav {
+        text-align: center;
+      }
+
+      .nav li {
+        display: inline-block;
+        padding-left: 4%;
+        padding-right: 4%;
       }
 
       a {
         text-decoration: none;
         color: #000;
       }
-      
-      li {
-        display: inline;
-        margin-right: 10px;
-      }
     </style>
 </head>
 
 <body class="bg">
   <div class="fg">
-    <div style="height: 20px">
-      <nav class="menu">
-        <ul style="margin: 0; display: inline;">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="chess.html">Chess</a></li>
-          <li><a href="poker.html">Poker</a></li>
-          <li><strong>Oscar</strong></li>
-          <li><a href="https://github.com/Ekotlikoff">Github</a></li>
-          <li><a href="https://www.linkedin.com/in/emmettkotlikoff/">LinkedIn</a></li>
-          <li><a href="emmett.kotlikoff.pdf">Resume</a></li>
-          <li><a href="mailto: ekotlikoff@gmail.com">Email</a></li>
-        </ul>
-      </nav>
-    </div>
+    <ul class="nav">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="chess.html">Chess</a></li>
+      <li><strong>Oscar</strong></li>
+      <li><a href="https://github.com/ekotlikoff">Github</a></li>
+      <li><a href="mailto: ekotlikoff@gmail.com">Email</a></li>
+    </ul>
     <div style="margin-left: 20px">
       <p>Jump into the world of Oscar, a charming flamingo on the run.</p>
       <ul>
