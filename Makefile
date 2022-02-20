@@ -6,3 +6,14 @@ all:
 				 -o ~/bin/gochessclient.wasm \
 				 -tags webclient $(webclient_package)
 	go run $(run_local_package)
+
+configure_ec2:
+	./bin/build_ec2.sh s3
+
+pull_latest_artifacts:
+	./bin/download_artifacts.sh
+
+.PHONY: \
+	all \
+	configure_ec2 \
+	pull_latest_artifacts \
