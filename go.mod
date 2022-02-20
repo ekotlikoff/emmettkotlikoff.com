@@ -1,4 +1,4 @@
-module emmettkotlikoff.com
+module github.com/ekotlikoff/emmettkotlikoff.com
 
 go 1.17
 
