@@ -1,5 +1,5 @@
-run_local_package := github.com/Ekotlikoff/emmettkotlikoff.com/cmd/website
-webclient_package := github.com/Ekotlikoff/gochess/internal/client/web
+run_local_package := github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
+webclient_package := github.com/ekotlikoff/gochess/internal/client/web
 
 all:
 	GOARCH=wasm GOOS=js go build \

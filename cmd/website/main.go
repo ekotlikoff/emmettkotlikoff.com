@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/Ekotlikoff/gochess/pkg/chessserver"
+	"github.com/ekotlikoff/gochess/pkg/chessserver"
 )
 
 type Configuration struct {
