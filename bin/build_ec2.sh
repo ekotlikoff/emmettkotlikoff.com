@@ -1,6 +1,6 @@
 #!/bin/bash
 
-./configure_machine.sh
+./configure_ec2.sh
 if [[ "$1" == "s3" ]]; then
   ./download_artifacts.sh
 else

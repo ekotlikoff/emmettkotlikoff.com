@@ -8,7 +8,7 @@ all:
 	go run $(run_local_package)
 
 configure_ec2:
-	./bin/configure_ec2.sh s3
+	./bin/build_ec2.sh s3
 
 pull_latest_artifacts:
 	./bin/download_artifacts.sh
