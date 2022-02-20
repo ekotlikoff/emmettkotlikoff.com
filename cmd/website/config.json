@@ -1,6 +1,6 @@
 {
      "Quiet": false,
-     "TLS": false,
+     "TLS": true,
      "CertFile": "/etc/letsencrypt/live/emmettkotlikoff.com/fullchain.pem",
      "KeyFile": "/etc/letsencrypt/live/emmettkotlikoff.com/privkey.pem"
 }
