@@ -12,12 +12,13 @@ sudo yum install git -y
 wget https://dl.google.com/go/go1.17.5.linux-amd64.tar.gz
 sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.17.5.linux-amd64.tar.gz
 
+# TODO Download binaries from S3 instead of building from source
 sudo -u ekotlikoff bash -c "/usr/bin/git clone https://github.com/ekotlikoff/emmettkotlikoff.com.git ~/go/src/emmettkotlikoff.com"
 # Build the wasm binary TODO look to store in aws codepipeline/codebuild
 # (both have a free tier)
-sudo -u ekotlikoff bash -c "cd ~/go/src/emmettkotlikoff.com/; GOARCH=wasm GOOS=js /usr/local/go/bin/go build -o ~/bin/gochessclient.wasm -tags webclient github.com/Ekotlikoff/gochess/internal/client/web"
+sudo -u ekotlikoff bash -c "cd ~/go/src/emmettkotlikoff.com/; GOARCH=wasm GOOS=js /usr/local/go/bin/go build -o ~/bin/gochessclient.wasm -tags webclient github.com/ekotlikoff/gochess/internal/client/web"
 # Build the golang binary TODO look to store in aws codepipeline/codebuild
-sudo -u ekotlikoff bash -c "cd ~/go/src/emmettkotlikoff.com/; /usr/local/go/bin/go build github.com/Ekotlikoff/emmettkotlikoff.com/cmd/website"
+sudo -u ekotlikoff bash -c "cd ~/go/src/emmettkotlikoff.com/; /usr/local/go/bin/go build github.com/ekotlikoff/emmettkotlikoff.com/cmd/website"
 
 # Install rust https://www.rust-lang.org/tools/install
 sudo -u ekotlikoff bash -c "cd ~; curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
