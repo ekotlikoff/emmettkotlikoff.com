@@ -7,13 +7,13 @@ all:
 				 -tags webclient $(webclient_package)
 	go run $(run_local_package)
 
-build_ec2:
-	./bin/build_ec2.sh s3
+configure_ec2:
+	./bin/configure_ec2.sh s3
 
-build_ec2_source:
-	./bin/build_ec2.sh source
+pull_latest_artifacts:
+	./bin/download_artifacts.sh
 
 .PHONY: \
 	all \
-	build_ec2 \
-	build_ec2_source \
+	configure_ec2 \
+	pull_latest_artifacts \
