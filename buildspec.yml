@@ -16,13 +16,13 @@ phases:
       - go version
       # AWS Codebuild Go images use /go for the $GOPATH so let's copy our
       # application source code into that directory structure.
-      - mkdir -p "/go/src/$(dirname ${PACKAGE})"
-      - mv "${CODEBUILD_SRC_DIR}" "/go/src/${PACKAGE}"
+      #- mkdir -p "/go/src/$(dirname ${PACKAGE})"
+      #- ln -s "${CODEBUILD_SRC_DIR}" "/go/src/${PACKAGE}"
       # Print all environment variables (handy for AWS CodeBuild logs)
       - env
   pre_build:
     commands:
-      - cd "/go/src/${PACKAGE}"
+      #- cd "/go/src/${PACKAGE}"
       - go get -t ./...
   build:
     commands:
