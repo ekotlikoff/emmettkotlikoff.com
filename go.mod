@@ -1,10 +1,10 @@
-module github.com/Ekotlikoff/emmettkotlikoff.com
+module github.com/ekotlikoff/emmettkotlikoff.com
 
 go 1.16
 
 require (
-	github.com/Ekotlikoff/gochess v0.0.0-20211023185722-b7063033c3f8
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/ekotlikoff/gochess v0.0.0-20211023185722-b7063033c3f8
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
