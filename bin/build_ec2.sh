@@ -1,9 +1,9 @@
 #!/bin/bash
 
-./configure_ec2.sh
+./bin/configure_ec2.sh
 if [[ "$1" == "s3" ]]; then
-  ./download_artifacts.sh
+  ./bin/download_artifacts.sh
 else
-  ./build_from_source.sh
+  ./bin/build_from_source.sh
 fi
 
