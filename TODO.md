@@ -5,3 +5,4 @@
 ### Done
 * [x] Upgrade to HTTPS
 * [x] Setup script
+* [x] CodeBuild integration and artifact storage in s3
