@@ -6,6 +6,7 @@ env:
     PACKAGE: "github.com/ekotlikoff/emmettkotlikoff.com"
     GOCHESS_PACKAGE: "github.com/ekotlikoff/gochess"
     GO_VERSION: "1.17.0"
+    ENV: "prod"
 
 phases:
   install:

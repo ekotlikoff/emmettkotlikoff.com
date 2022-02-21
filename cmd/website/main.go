@@ -2,17 +2,22 @@ package main
 
 import (
 	"embed"
-	_ "embed"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"strconv"
 
 	"github.com/ekotlikoff/gochess/pkg/chessserver"
 )
+
+//go:generate bash ./../../bin/get_version.sh
+//go:embed version.txt
+var version string
+var env string = os.Getenv("ENV")
 
 type Configuration struct {
 	Quiet    bool
@@ -22,8 +27,10 @@ type Configuration struct {
 }
 
 var (
-	//go:embed config.json
-	config []byte
+	//go:embed local.json
+	localConfig []byte
+	//go:embed prod.json
+	prodConfig []byte
 	//go:embed static
 	webStaticFS embed.FS
 )
@@ -39,6 +46,7 @@ func main() {
 	gatewayProxy := httputil.NewSingleHostReverseProxy(gatewayURL)
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(handleWebRoot))
+	mux.Handle("/info", http.HandlerFunc(handleInfo))
 	mux.Handle("/chess/", gatewayProxy)
 	var err error
 	if config.TLS {
@@ -58,8 +66,16 @@ func handleWebRoot(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(http.FS(webStaticFS)).ServeHTTP(w, r)
 }
 
+func handleInfo(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(version))
+}
+
 func loadConfig() Configuration {
 	configuration := Configuration{}
+	config := localConfig
+	if env == "prod" {
+		config = prodConfig
+	}
 	err := json.Unmarshal(config, &configuration)
 	if err != nil {
 		log.Println("ERROR:", err)
