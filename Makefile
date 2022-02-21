@@ -5,6 +5,7 @@ all:
 	GOARCH=wasm GOOS=js go build \
 				 -o ~/bin/gochessclient.wasm \
 				 -tags webclient $(webclient_package)
+	go generate $(run_local_package)
 	go run $(run_local_package)
 
 configure_ec2:
