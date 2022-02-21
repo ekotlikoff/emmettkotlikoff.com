@@ -22,9 +22,11 @@ phases:
   build:
     commands:
       - GOARCH=wasm GOOS=js go build -o gochessclient.wasm -tags webclient ${GOCHESS_PACKAGE}/internal/client/web
+      - go generate github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
       - go build github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
-
-artifacts:
-  files:
-    - gochessclient.wasm
-    - website
+  post_build:
+    commands:
+      - export VERSION=$(cat cmd/website/version.txt)
+      - aws s3 rm s3://ekotlikoff-codebuild --recursive --exclude="*" --include="emmettkotlikoff/*"
+      - aws s3 cp gochessclient.wasm s3://ekotlikoff-codebuild/emmettkotlikoff/gochessclient.wasm-$VERSION
+      - aws s3 cp website s3://ekotlikoff-codebuild/emmettkotlikoff/website-$VERSION
