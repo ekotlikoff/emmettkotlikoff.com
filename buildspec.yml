@@ -18,11 +18,11 @@ phases:
       - env
   pre_build:
     commands:
+      - go generate github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
       - go get -t ./...
   build:
     commands:
       - GOARCH=wasm GOOS=js go build -o gochessclient.wasm -tags webclient ${GOCHESS_PACKAGE}/internal/client/web
-      - go generate github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
       - go build github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
   post_build:
     commands:
