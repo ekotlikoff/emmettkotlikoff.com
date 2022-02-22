@@ -10,13 +10,16 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/ekotlikoff/gochess/pkg/chessserver"
+	"golang.org/x/mod/semver"
 )
 
 //go:generate bash ./../../bin/get_version.sh
 //go:embed version.txt
 var version string
+var Version string = strings.TrimSpace(version)
 var env string = os.Getenv("ENV")
 
 type Configuration struct {
@@ -67,10 +70,13 @@ func handleWebRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleInfo(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(version))
+	w.Write([]byte(Version))
 }
 
 func loadConfig() Configuration {
+	if !semver.IsValid("v" + Version) {
+		log.Fatalf("version %s is not a valid semantic version string\n", Version)
+	}
 	configuration := Configuration{}
 	config := localConfig
 	if env == "prod" {
