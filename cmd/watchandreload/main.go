@@ -3,10 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
+	"path"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -14,19 +19,45 @@ import (
 	"golang.org/x/mod/semver"
 )
 
-var artifact_bucket string = "ekotlikoff-codebuild"
-var artifacts map[string]string = map[string]string{
-	"emmettkotlikoff/gochessclient.wasm": Service{443},
-	"emmettkotlikoff/website":            Service{443},
-	// TODO just need to expose version on /info
-	//"rustchess/chess_engine":           Service{"chessengine.service", 8003",
-}
+var (
+	artifactBucket string               = "ekotlikoff-codebuild"
+	services       map[Service][]string = map[Service][]string{
+		{443, "emmettkotlikoff.com"}: {
+			"emmettkotlikoff/gochessclient.wasm",
+			"emmettkotlikoff/website",
+		},
+		// TODO just need to expose version on /info
+		// {8003, "chessengine"}: {"rustchess/chess_engine"}
+	}
+)
+
+var (
+	watchInterval          int    = 20
+	localArtifactDirectory string = "/home/ekotlikoff/bin"
+)
 
 type Service struct {
 	Port int
+	Name String
 }
 
 func main() {
+	ticker := time.NewTicker(watchInterval * time.Second)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				checkForNewVersions()
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+}
+
+func checkForNewVersions() {
 	// Every _ seconds list s3 objects, get version, compare to running version
 	// (get /info)
 	// If version is newer then copy to correct location and restart website,
@@ -36,39 +67,69 @@ func main() {
 		log.Fatal(err)
 	}
 	client := s3.NewFromConfig(cfg)
-
-	for a, service := range artifacts {
-		output, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
-			Bucket: aws.String(artifact_bucket),
-			Prefix: aws.String(a),
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-		if len(output.Contents) != 1 {
-			log.Println("Did not find the expected number of artifacts, found", len(output.Contents))
-		} else {
-			artifactVersion := getVersionFromName(aws.ToString(object.Key))
+	for service, artifacts := range services {
+		for _, a := range artifacts {
+			listOutput, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+				Bucket: aws.String(artifactBucket),
+				Prefix: aws.String(a),
+			})
+			if err != nil {
+				log.Printf("ListObject error: %v", err)
+				return
+			}
+			if len(listOutput.Contents) != 1 {
+				log.Printf("Did not find the expected number of artifacts, found %d", len(listOutput.Contents))
+				return
+			}
+			s3Artifact := listOutput.Contents[0]
+			artifactName, artifactVersion := splitArtifactNameAndVersion(aws.ToString(s3Artifact.Key))
 			runningVersion := getVersionFromService(service)
+			restartNeeded := false
 			if !semver.IsValid(artifactVersion) || !semver.IsValid(runningVersion) {
-				log.Fatal("found invalid semantic versions, %s and/or %s",
+				log.Printf("found invalid semantic versions, %s and/or %s",
 					artifactVersion, runningVersion)
+				return
 			}
 			if semver.Compare(artifactVersion, runningVersion) > 0 {
+				restartNeeded = true
 				// S3 copy artifact
-				// TODO Restart service or watcher systemd service for each service that
-				// restarts it on change to the binary https://superuser.com/questions/1171751/restart-systemd-service-automatically-whenever-a-directory-changes-any-file-ins
+				resp, err := client.GetObject(context.TODO(),
+					&s3.GetObjectInput{
+						Bucket: listOutput.Name,
+						Key:    s3Artifact.Key,
+					},
+				)
+				if err != nil {
+					log.Printf("GetObject error: %v", err)
+					return
+				}
+				defer resp.Body.Close()
+				outFile, err := os.Create(path.Join(localArtifactDirectory, artifactName))
+				defer outFile.Close()
+				_, err = io.Copy(outFile, res.Body)
+				if err != nil {
+					log.Printf("io.Copy error: %v", err)
+					return
+				}
+			}
+			if restartNeeded {
+				log.Printf("restarting systemd service %s after fetching %v", service.Name, artifacts)
+				cmd := exec.Command("systemctl", "restart", service.Name)
+				err := cmd.Run()
+				if err != nil {
+					log.Printf("systemctl restart error: %v", err)
+				}
 			}
 		}
 	}
 }
 
-func getVersionFromName(n string) string {
+func splitArtifactNameAndVersion(n string) string {
 	idx := strings.Index(n, "-")
-	if idx == -1 {
+	if idx == -1 || idx+1 >= len(n) {
 		return "", fmt.Errorf("getVersionFromName: invalid artifact name %s", n)
 	}
-	return n[idx+1:]
+	return n[:idx], n[idx+1:]
 }
 
 func getVersionFromService(s Service) string {
