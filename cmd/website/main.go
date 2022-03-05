@@ -5,12 +5,15 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/ekotlikoff/gochess/pkg/chessserver"
 	"golang.org/x/mod/semver"
@@ -49,8 +52,8 @@ func main() {
 	gatewayProxy := httputil.NewSingleHostReverseProxy(gatewayURL)
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(handleWebRoot))
-	mux.Handle("/info", http.HandlerFunc(handleInfo))
 	mux.Handle("/chess/", gatewayProxy)
+	listenVersion()
 	var err error
 	if config.TLS {
 		err = http.ListenAndServeTLS(
@@ -69,7 +72,26 @@ func handleWebRoot(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(http.FS(webStaticFS)).ServeHTTP(w, r)
 }
 
-func handleInfo(w http.ResponseWriter, r *http.Request) {
+func listenVersion() {
+	l, err := net.Listen("unix", "/tmp/emmettkotlikoff_version.sock")
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	go func() {
+		http.Serve(l, http.HandlerFunc(handleVersion))
+	}()
+
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, os.Interrupt, os.Kill, syscall.SIGTERM)
+	go func(c chan os.Signal) {
+		sig := <-c
+		log.Printf("Caught signal %s: shutting down.", sig)
+		l.Close()
+		os.Exit(0)
+	}(sigc)
+}
+
+func handleVersion(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(Version))
 }
 

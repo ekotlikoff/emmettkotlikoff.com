@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"net/http"
+	"net"
 	"os"
 	"os/exec"
 	"path"
@@ -22,7 +21,7 @@ import (
 var (
 	artifactBucket string               = "ekotlikoff-codebuild"
 	services       map[Service][]string = map[Service][]string{
-		{443, "emmettkotlikoff.com"}: {
+		{"emmettkotlikoff.com", "/tmp/emmettkotlikoff_version.sock"}: {
 			"emmettkotlikoff/gochessclient.wasm",
 			"emmettkotlikoff/website",
 		},
@@ -37,24 +36,22 @@ var (
 )
 
 type Service struct {
-	Port int
-	Name String
+	Name   string
+	Socket string
 }
 
 func main() {
-	ticker := time.NewTicker(watchInterval * time.Second)
+	ticker := time.NewTicker(time.Duration(watchInterval) * time.Second)
 	quit := make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				checkForNewVersions()
-			case <-quit:
-				ticker.Stop()
-				return
-			}
+	for {
+		select {
+		case <-ticker.C:
+			checkForNewVersions()
+		case <-quit:
+			ticker.Stop()
+			return
 		}
-	}()
+	}
 }
 
 func checkForNewVersions() {
@@ -62,7 +59,7 @@ func checkForNewVersions() {
 	// (get /info)
 	// If version is newer then copy to correct location and restart website,
 	// chess engine, and yourself
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,19 +71,23 @@ func checkForNewVersions() {
 				Prefix: aws.String(a),
 			})
 			if err != nil {
-				log.Printf("ListObject error: %v", err)
+				log.Printf("ListObject error: %v\n", err)
 				return
 			}
 			if len(listOutput.Contents) != 1 {
-				log.Printf("Did not find the expected number of artifacts, found %d", len(listOutput.Contents))
+				log.Printf("Did not find the expected number of artifacts, found %d\n", len(listOutput.Contents))
 				return
 			}
 			s3Artifact := listOutput.Contents[0]
-			artifactName, artifactVersion := splitArtifactNameAndVersion(aws.ToString(s3Artifact.Key))
+			artifactName, artifactVersion, err := splitArtifactNameAndVersion(aws.ToString(s3Artifact.Key))
+			if err != nil {
+				log.Printf("splitArtifactNameAndVersion error: %v\n", err)
+				return
+			}
 			runningVersion := getVersionFromService(service)
 			restartNeeded := false
 			if !semver.IsValid(artifactVersion) || !semver.IsValid(runningVersion) {
-				log.Printf("found invalid semantic versions, %s and/or %s",
+				log.Printf("found invalid semantic versions, %s and/or %s\n",
 					artifactVersion, runningVersion)
 				return
 			}
@@ -100,47 +101,48 @@ func checkForNewVersions() {
 					},
 				)
 				if err != nil {
-					log.Printf("GetObject error: %v", err)
+					log.Printf("GetObject error: %v\n", err)
 					return
 				}
 				defer resp.Body.Close()
 				outFile, err := os.Create(path.Join(localArtifactDirectory, artifactName))
 				defer outFile.Close()
-				_, err = io.Copy(outFile, res.Body)
+				_, err = io.Copy(outFile, resp.Body)
 				if err != nil {
-					log.Printf("io.Copy error: %v", err)
+					log.Printf("io.Copy error: %v\n", err)
 					return
 				}
 			}
 			if restartNeeded {
-				log.Printf("restarting systemd service %s after fetching %v", service.Name, artifacts)
+				log.Printf("restarting systemd service %s after fetching %v\n", service.Name, artifacts)
 				cmd := exec.Command("systemctl", "restart", service.Name)
 				err := cmd.Run()
 				if err != nil {
-					log.Printf("systemctl restart error: %v", err)
+					log.Printf("systemctl restart error: %v\n", err)
 				}
 			}
 		}
 	}
 }
 
-func splitArtifactNameAndVersion(n string) string {
+func splitArtifactNameAndVersion(n string) (string, string, error) {
 	idx := strings.Index(n, "-")
 	if idx == -1 || idx+1 >= len(n) {
-		return "", fmt.Errorf("getVersionFromName: invalid artifact name %s", n)
+		return "", "", fmt.Errorf("getVersionFromName: invalid artifact name %v", n)
 	}
-	return n[:idx], n[idx+1:]
+	return n[:idx], n[idx+1:], nil
 }
 
 func getVersionFromService(s Service) string {
-	resp, err := http.Get(fmt.Sprintf("https://localhost:%d/info", s.Port))
+	c, err := net.Dial("unix", s.Socket)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	defer c.Close()
+	buf := make([]byte, 100)
+	n, err := c.Read(buf[:])
 	if err != nil {
 		log.Fatal(err)
 	}
-	return string(body)
+	return string(buf[0:n])
 }
