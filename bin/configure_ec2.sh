@@ -22,6 +22,7 @@ sudo chgrp -R emmettkotlikoff_cert /etc/letsencrypt/archive
 sudo chgrp -R emmettkotlikoff_cert /etc/letsencrypt/live
 sudo chmod -R 750 /etc/letsencrypt/live/
 sudo chmod -R 750 /etc/letsencrypt/archive/
+sudo crontab -l | grep -q 'emmettkotlikoff.com.service' || (sudo crontab -l 2>/dev/null; echo "1 0 20 * * certbot renew && systemctl restart emmettkotlikoff.com.service") | sudo crontab -
 
 # Create systemd services
 sudo cat > /etc/systemd/system/chessengine.service << EOF
