@@ -8,7 +8,7 @@
   * [ ] Implement simple agent that checks version of running process and
     compares with binary in s3, pulls and restarts if newer is available
   * [ ] configure codebuild to build on pushes of a tag https://ruddra.com/aws-codebuild-use-git-tags/
-* [ ] Refactor configs - have a local and prod config
+* [x] Refactor configs - have a local and prod config
 * [ ] Does the Oscar download actually work?
 
 ### Done
