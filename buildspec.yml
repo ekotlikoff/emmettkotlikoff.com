@@ -18,6 +18,7 @@ phases:
       - env
   pre_build:
     commands:
+      - go generate github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
       - go get -t ./...
   build:
     commands:
