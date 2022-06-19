@@ -10,20 +10,21 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"os/signal"
 	"strconv"
 	"strings"
-	"syscall"
 
 	"github.com/ekotlikoff/gochess/pkg/chessserver"
 	"golang.org/x/mod/semver"
 )
 
-//go:generate bash ./../../bin/get_version.sh
-//go:embed version.txt
-var version string
-var Version string = strings.TrimSpace(version)
-var env string = os.Getenv("ENV")
+var (
+	//go:generate bash ./../../bin/get_version.sh
+	//go:embed version.txt
+	version string
+	Version string = strings.TrimSpace(version)
+	env     string = os.Getenv("ENV")
+	sock    string = "/tmp/emmettkotlikoff_version.sock"
+)
 
 type Configuration struct {
 	Quiet    bool
@@ -73,22 +74,17 @@ func handleWebRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func listenVersion() {
-	l, err := net.Listen("unix", "/tmp/emmettkotlikoff_version.sock")
+	if err := os.RemoveAll(sock); err != nil {
+		log.Fatal(err)
+	}
+	l, err := net.Listen("unix", sock)
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
+	defer l.Close()
 	go func() {
 		http.Serve(l, http.HandlerFunc(handleVersion))
 	}()
-
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, os.Interrupt, os.Kill, syscall.SIGTERM)
-	go func(c chan os.Signal) {
-		sig := <-c
-		log.Printf("Caught signal %s: shutting down.", sig)
-		l.Close()
-		os.Exit(0)
-	}(sigc)
 }
 
 func handleVersion(w http.ResponseWriter, r *http.Request) {
