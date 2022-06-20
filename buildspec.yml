@@ -24,8 +24,10 @@ phases:
     commands:
       - GOARCH=wasm GOOS=js go build -o gochessclient.wasm -tags webclient ${GOCHESS_PACKAGE}/internal/client/web
       - go build github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
+      - go build github.com/ekotlikoff/emmettkotlikoff.com/cmd/watcher
 
 artifacts:
   files:
     - gochessclient.wasm
     - website
+    - watcher
