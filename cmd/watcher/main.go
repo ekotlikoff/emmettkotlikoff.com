@@ -117,25 +117,22 @@ func (_ LMCache) set(a Artifact, t *time.Time) error {
 type Service struct {
 	Name      string
 	Artifacts []Artifact
-	Stop      func() error
+	Remove    func(Artifact) error
 	Restart   func() error
 }
 
 func newService(name string, artifacts []Artifact) *Service {
-	stop := func() error {
-		log.Printf("stopping systemd service %s\n", name)
-		cmd := exec.Command("systemctl", "stop", name)
-		return cmd.Run()
+	remove := func(a Artifact) error {
+		return os.Remove(a.LocalPath)
 	}
 	restart := func() error {
-		log.Printf("restarting systemd service %s\n", name)
 		cmd := exec.Command("systemctl", "restart", name)
 		return cmd.Run()
 	}
 	return &Service{
 		Name:      name,
 		Artifacts: artifacts,
-		Stop:      stop,
+		Remove:    remove,
 		Restart:   restart,
 	}
 }
@@ -187,26 +184,21 @@ func (w Watcher) checkForNewVersions() {
 			if currentT == nil || !(*lastModified).Equal(*currentT) {
 				log.Printf("lastModified changed to %s for service=%s artifact=%s\n",
 					lastModified.Format(time.Stamp), service.Name, a.S3Path)
-				log.Printf("stopping service=%s while replacing the artifact\n", service.Name)
-				err := service.Stop()
+				err := service.Remove(a)
 				if err != nil {
-					log.Fatalf("stop error: %v\n", err)
+					log.Fatal(err)
 				}
 				if w.copyArtifact(a, *s3Artifact.Key) == nil {
 					w.LMCache.set(a, lastModified)
 					anyModified = true
 				} else {
-					log.Println("copy error")
-					err := service.Restart()
-					if err != nil {
-						log.Fatalf("service %v is DOWN and has failed to restart: %v\n",
-							service.Name, err)
-					}
+					log.Printf("service %v is now missing a binary: %v\n",
+						service.Name, a.LocalPath)
 				}
 			}
 		}
 		if anyModified {
-			log.Printf("starting service=%s\n", service.Name)
+			log.Printf("restarting service=%s\n", service.Name)
 			err := service.Restart()
 			if err != nil {
 				log.Printf("restart error: %v\n", err)
