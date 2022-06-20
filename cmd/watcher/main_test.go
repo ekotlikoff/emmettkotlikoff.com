@@ -20,23 +20,31 @@ import (
 3. either update cache and run function or noop
 
 */
-var now = time.Now()
-var testArtifact = newArtifact("test_artifact", "s3_path/", "local_path/")
-var mockServices = []*Service{newMockService("emmettkotlikoff.com", []Artifact{testArtifact})}
-var artifactTSMap map[Artifact]*time.Time = map[Artifact]*time.Time{testArtifact: nil}
-var didRestart, didCopy, restartShouldError, copyShouldError bool
+var testArtifact = newArtifact("test_artifact", "s3_path/")
+var testArtifact2 = newArtifact("test_artifact2", "s3_path/")
+var mockServices = []*Service{newMockService("emmettkotlikoff.com", []Artifact{testArtifact, testArtifact2})}
+var artifactTSMap map[Artifact]*time.Time = map[Artifact]*time.Time{
+	testArtifact:  nil,
+	testArtifact2: nil,
+}
+var restartShouldError, copyShouldError bool
+var restarts, copies int
 
 func newMockService(name string, artifacts []Artifact) *Service {
+	stop := func() error {
+		return nil
+	}
 	restart := func() error {
 		if restartShouldError {
 			return fmt.Errorf("test restart error")
 		}
-		didRestart = true
+		restarts++
 		return nil
 	}
 	return &Service{
 		Name:      name,
 		Artifacts: artifacts,
+		Stop:      stop,
 		Restart:   restart,
 	}
 }
@@ -82,7 +90,7 @@ func (_ MockCopier) Copy(a Artifact, r io.Reader) error {
 	if copyShouldError {
 		return fmt.Errorf("test copy error")
 	}
-	didCopy = true
+	copies++
 	return nil
 }
 
@@ -94,27 +102,34 @@ func newTestWatcher(mc MockS3Client) Watcher {
 }
 
 func TestWatcher(t *testing.T) {
+	now := time.Now()
+	oneHourAgo := now.Add(time.Duration(-1) * time.Hour)
 	tests := []struct {
 		name               string
 		cachedLastModified *time.Time
 		remoteLastModified *time.Time
 		s3Error            bool
-		want               []bool
+		wantRestarts       []int
+		wantCopies         []int
 	}{
-		{"TestNoRestart", &now, &now, false, []bool{false}},
-		{"TestRestart", nil, &now, false, []bool{true, false}},
+		{"TestNoRestart", &now, &now, false, []int{0}, []int{0}},
+		{"TestRestart", &oneHourAgo, &now, false, []int{1, 0}, []int{2, 0}},
+		{"TestRestartFromNil", nil, &now, false, []int{1, 0}, []int{2, 0}},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			artifactTSMap[testArtifact] = tc.cachedLastModified
+			for k := range artifactTSMap {
+				artifactTSMap[k] = tc.cachedLastModified
+			}
 			mc := MockS3Client{tc.remoteLastModified, tc.s3Error}
 			w := newTestWatcher(mc)
-			for i, want := range tc.want {
+			for i, wantRestart := range tc.wantRestarts {
 				t.Run(strconv.Itoa(i), func(t *testing.T) {
-					didRestart = false
+					restarts, copies = 0, 0
 					w.checkForNewVersions()
-					if didRestart != want {
-						t.Errorf("expected: %v, got %v", want, didRestart)
+					if restarts != wantRestart || copies != tc.wantCopies[i] {
+						t.Errorf("expected: restart=%v copies=%v, got restart=%v copies=%v",
+							wantRestart, tc.wantCopies[i], restarts, copies)
 					}
 				})
 			}
