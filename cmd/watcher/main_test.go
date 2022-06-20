@@ -31,7 +31,7 @@ var restartShouldError, copyShouldError bool
 var restarts, copies int
 
 func newMockService(name string, artifacts []Artifact) *Service {
-	stop := func() error {
+	remove := func(_ Artifact) error {
 		return nil
 	}
 	restart := func() error {
@@ -44,7 +44,7 @@ func newMockService(name string, artifacts []Artifact) *Service {
 	return &Service{
 		Name:      name,
 		Artifacts: artifacts,
-		Stop:      stop,
+		Remove:    remove,
 		Restart:   restart,
 	}
 }
