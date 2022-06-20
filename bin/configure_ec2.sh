@@ -71,4 +71,26 @@ SyslogIdentifier=gochess
 WantedBy=multi-user.target
 EOF
 
+sudo cat > /etc/systemd/system/watcher.service << EOF
+[Unit]
+Description=watcher
+ConditionPathExists=/home/ekotlikoff/bin/watcher
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/ekotlikoff/
+ExecStart=/home/ekotlikoff/bin/watcher
+Restart=on-failure
+RestartSec=15
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=watcher
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 sudo systemctl daemon-reload
