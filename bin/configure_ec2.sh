@@ -60,6 +60,7 @@ User=ekotlikoff
 Group=emmettkotlikoff_cert
 WorkingDirectory=/home/ekotlikoff/
 ExecStart=/home/ekotlikoff/bin/website
+Environment="ENV=prod"
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 Restart=on-failure
 RestartSec=15
