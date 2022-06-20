@@ -18,6 +18,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
+// Watcher watches artifacts in s3 and downloads/restarts when new ones are
+// detected.
+
 var (
 	artifactBucket string     = "ekotlikoff-codebuild"
 	services       []*Service = []*Service{
@@ -25,11 +28,11 @@ var (
 			newArtifact("website", "emmettkotlikoff/", "/home/ekotlikoff/bin"),
 			newArtifact("gochessclient.wasm", "emmettkotlikoff/", "/home/ekotlikoff/bin"),
 		}),
-		newService("chessengine", []Artifact{
-			newArtifact("chess_engine", "rustchess/", "/home/ekotlikoff/bin/chess_engine"),
-		}),
 		newService("watcher", []Artifact{
 			newArtifact("watcher", "emmettkotlikoff/", "/home/ekotlikoff/bin/watcher"),
+		}),
+		newService("chessengine", []Artifact{
+			newArtifact("chess_engine", "rustchess/", "/home/ekotlikoff/bin/chess_engine"),
 		}),
 	}
 	watchInterval int = 60
