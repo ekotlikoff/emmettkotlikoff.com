@@ -23,17 +23,14 @@ import (
 
 var (
 	artifactBucket string     = "ekotlikoff-codebuild"
+	localPath      string     = "/home/ekotlikoff/bin"
 	services       []*Service = []*Service{
 		newService("emmettkotlikoff.com", []Artifact{
-			newArtifact("website", "emmettkotlikoff/", "/home/ekotlikoff/bin"),
-			newArtifact("gochessclient.wasm", "emmettkotlikoff/", "/home/ekotlikoff/bin"),
+			newArtifact("website", "emmettkotlikoff/"),
+			newArtifact("gochessclient.wasm", "emmettkotlikoff/"),
 		}),
-		newService("watcher", []Artifact{
-			newArtifact("watcher", "emmettkotlikoff/", "/home/ekotlikoff/bin/watcher"),
-		}),
-		newService("chessengine", []Artifact{
-			newArtifact("chess_engine", "rustchess/", "/home/ekotlikoff/bin/chess_engine"),
-		}),
+		newService("watcher", []Artifact{newArtifact("watcher", "emmettkotlikoff/")}),
+		newService("chessengine", []Artifact{newArtifact("chess_engine", "rustchess/")}),
 	}
 	watchInterval int = 60
 )
@@ -70,6 +67,10 @@ type FCopier struct{}
 
 func (_ FCopier) Copy(a Artifact, r io.Reader) error {
 	outFile, err := os.Create(a.LocalPath)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
 	defer outFile.Close()
 	_, err = io.Copy(outFile, r)
 	if err != nil {
@@ -114,10 +115,16 @@ func (_ LMCache) set(a Artifact, t *time.Time) error {
 type Service struct {
 	Name      string
 	Artifacts []Artifact
+	Stop      func() error
 	Restart   func() error
 }
 
 func newService(name string, artifacts []Artifact) *Service {
+	stop := func() error {
+		log.Printf("stopping systemd service %s\n", name)
+		cmd := exec.Command("systemctl", "stop", name)
+		return cmd.Run()
+	}
 	restart := func() error {
 		log.Printf("restarting systemd service %s\n", name)
 		cmd := exec.Command("systemctl", "restart", name)
@@ -126,6 +133,7 @@ func newService(name string, artifacts []Artifact) *Service {
 	return &Service{
 		Name:      name,
 		Artifacts: artifacts,
+		Stop:      stop,
 		Restart:   restart,
 	}
 }
@@ -136,7 +144,7 @@ type Artifact struct {
 	LocalPath        string
 }
 
-func newArtifact(name, s3Path, localPath string) Artifact {
+func newArtifact(name, s3Path string) Artifact {
 	return Artifact{
 		LastModifiedFile: fmt.Sprintf("/var/lib/%s/mtime", name),
 		S3Path:           filepath.Join(s3Path, name),
@@ -175,9 +183,20 @@ func (w Watcher) checkForNewVersions() {
 				log.Println(err)
 			}
 			if currentT == nil || !(*lastModified).Equal(*currentT) {
+				err := service.Stop()
+				if err != nil {
+					log.Fatalf("stop error: %v\n", err)
+				}
 				if w.copyArtifact(a, *s3Artifact.Key) == nil {
-					anyModified = true
 					w.LMCache.set(a, lastModified)
+					anyModified = true
+				} else {
+					log.Printf("Copy error")
+					err := service.Restart()
+					if err != nil {
+						log.Fatalf("service %v is DOWN and has failed to restart: %v\n",
+							service.Name, err)
+					}
 				}
 			}
 		}

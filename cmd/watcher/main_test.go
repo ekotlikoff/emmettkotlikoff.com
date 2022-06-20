@@ -21,12 +21,15 @@ import (
 
 */
 var now = time.Now()
-var testArtifact = newArtifact("test_artifact", "s3_path/", "local_path/")
+var testArtifact = newArtifact("test_artifact", "s3_path/")
 var mockServices = []*Service{newMockService("emmettkotlikoff.com", []Artifact{testArtifact})}
 var artifactTSMap map[Artifact]*time.Time = map[Artifact]*time.Time{testArtifact: nil}
 var didRestart, didCopy, restartShouldError, copyShouldError bool
 
 func newMockService(name string, artifacts []Artifact) *Service {
+	stop := func() error {
+		return nil
+	}
 	restart := func() error {
 		if restartShouldError {
 			return fmt.Errorf("test restart error")
@@ -37,6 +40,7 @@ func newMockService(name string, artifacts []Artifact) *Service {
 	return &Service{
 		Name:      name,
 		Artifacts: artifacts,
+		Stop:      stop,
 		Restart:   restart,
 	}
 }
