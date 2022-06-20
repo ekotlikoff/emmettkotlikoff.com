@@ -37,8 +37,10 @@ var (
 
 // Subset of the S3 client interface to make mocking easier
 type S3ListAndGetObjectAPI interface {
-	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
-	GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input,
+		optFns ...func(*s3.Options)) (*s3.ListObjectsV2Output, error)
+	GetObject(ctx context.Context, params *s3.GetObjectInput,
+		optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
 }
 
 type Watcher struct {
@@ -74,7 +76,7 @@ func (_ FCopier) Copy(a Artifact, r io.Reader) error {
 	defer outFile.Close()
 	_, err = io.Copy(outFile, r)
 	if err != nil {
-		log.Printf("io.Copy error: %v\n", err)
+		log.Printf("Copy: %v\n", err)
 		return err
 	}
 	return nil
@@ -183,6 +185,9 @@ func (w Watcher) checkForNewVersions() {
 				log.Println(err)
 			}
 			if currentT == nil || !(*lastModified).Equal(*currentT) {
+				log.Printf("lastModified changed to %s for service=%s artifact=%s\n",
+					lastModified.Format(time.Stamp), service.Name, a.S3Path)
+				log.Printf("stopping service=%s while replacing the artifact\n", service.Name)
 				err := service.Stop()
 				if err != nil {
 					log.Fatalf("stop error: %v\n", err)
@@ -191,7 +196,7 @@ func (w Watcher) checkForNewVersions() {
 					w.LMCache.set(a, lastModified)
 					anyModified = true
 				} else {
-					log.Printf("Copy error")
+					log.Println("copy error")
 					err := service.Restart()
 					if err != nil {
 						log.Fatalf("service %v is DOWN and has failed to restart: %v\n",
@@ -201,6 +206,7 @@ func (w Watcher) checkForNewVersions() {
 			}
 		}
 		if anyModified {
+			log.Printf("starting service=%s\n", service.Name)
 			err := service.Restart()
 			if err != nil {
 				log.Printf("restart error: %v\n", err)
@@ -234,7 +240,7 @@ func (w Watcher) copyArtifact(artifact Artifact, key string) error {
 		},
 	)
 	if err != nil {
-		log.Printf("GetObject error: %v\n", err)
+		log.Printf("copyArtifact: %v\n", err)
 	}
 	defer resp.Body.Close()
 	return w.Copier.Copy(artifact, resp.Body)
