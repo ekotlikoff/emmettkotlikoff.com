@@ -6,6 +6,7 @@ env:
     PACKAGE: "github.com/ekotlikoff/emmettkotlikoff.com"
     GOCHESS_PACKAGE: "github.com/ekotlikoff/gochess"
     GO_VERSION: "1.17.0"
+    ENV: "prod"
 
 phases:
   install:
@@ -17,13 +18,16 @@ phases:
       - env
   pre_build:
     commands:
+      - go generate github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
       - go get -t ./...
   build:
     commands:
       - GOARCH=wasm GOOS=js go build -o gochessclient.wasm -tags webclient ${GOCHESS_PACKAGE}/internal/client/web
       - go build github.com/ekotlikoff/emmettkotlikoff.com/cmd/website
+      - go build github.com/ekotlikoff/emmettkotlikoff.com/cmd/watcher
 
 artifacts:
   files:
     - gochessclient.wasm
     - website
+    - watcher

@@ -22,6 +22,7 @@ sudo chgrp -R emmettkotlikoff_cert /etc/letsencrypt/archive
 sudo chgrp -R emmettkotlikoff_cert /etc/letsencrypt/live
 sudo chmod -R 750 /etc/letsencrypt/live/
 sudo chmod -R 750 /etc/letsencrypt/archive/
+sudo crontab -l | grep -q 'emmettkotlikoff.com.service' || (sudo crontab -l 2>/dev/null; echo "1 0 1,10,20 * * certbot renew && systemctl restart emmettkotlikoff.com.service") | sudo crontab -
 
 # Create systemd services
 sudo cat > /etc/systemd/system/chessengine.service << EOF
@@ -65,6 +66,28 @@ RestartSec=15
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=gochess
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo cat > /etc/systemd/system/watcher.service << EOF
+[Unit]
+Description=watcher
+ConditionPathExists=/home/ekotlikoff/bin/watcher
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/ekotlikoff/
+ExecStart=/home/ekotlikoff/bin/watcher
+Restart=on-failure
+RestartSec=15
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=watcher
 
 [Install]
 WantedBy=multi-user.target
