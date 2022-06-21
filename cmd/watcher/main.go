@@ -79,7 +79,7 @@ func (_ FCopier) Copy(a Artifact, r io.Reader) error {
 		log.Printf("Copy: %v\n", err)
 		return err
 	}
-	err = os.Chmod(a.LocalPath, 0701)
+	err = os.Chmod(a.LocalPath, 0705)
 	if err != nil {
 		log.Printf("Copy: %v\n", err)
 		return err
