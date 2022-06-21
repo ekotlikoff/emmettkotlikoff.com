@@ -3,3 +3,6 @@
 #### Run
 * `make`
 
+#### Configure a new ec2 instance
+* `make configure_ec2`
+
