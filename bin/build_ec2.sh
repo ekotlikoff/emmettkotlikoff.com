@@ -7,3 +7,7 @@ else
   ./bin/build_from_source.sh
 fi
 
+sudo systemctl restart chessengine
+sudo systemctl restart emmettkotlikoff.com
+sudo systemctl restart watcher
+
