@@ -14,6 +14,3 @@ sudo -u ekotlikoff bash -c "cd ~; curl --proto '=https' --tlsv1.2 -sSf https://s
 sudo yum install gcc -y
 sudo -u ekotlikoff bash -c "/usr/bin/git clone https://github.com/ekotlikoff/rustchess.git ~/rust/rustchess"
 sudo -u ekotlikoff bash -c "cd ~/rust/rustchess; ~/.cargo/bin/cargo build --out-dir ~/bin --release"
-
-sudo systemctl restart chessengine
-sudo systemctl restart emmettkotlikoff.com
