@@ -95,7 +95,7 @@ type Cacher interface {
 type LMCache struct{}
 
 func (_ LMCache) get(a Artifact) (*time.Time, error) {
-	err := os.MkdirAll(path.Dir(a.LastModifiedFile), 0700)
+	err := os.MkdirAll(path.Dir(a.LastModifiedFile), 0601)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (_ LMCache) set(a Artifact, t *time.Time) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(a.LastModifiedFile, b, 0700)
+	return os.WriteFile(a.LastModifiedFile, b, 0701)
 }
 
 type Service struct {
