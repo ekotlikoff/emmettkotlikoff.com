@@ -79,7 +79,7 @@ func (_ FCopier) Copy(a Artifact, r io.Reader) error {
 		log.Printf("Copy: %v\n", err)
 		return err
 	}
-	err = os.Chmod(a.LocalPath, 0700)
+	err = os.Chmod(a.LocalPath, 0701)
 	if err != nil {
 		log.Printf("Copy: %v\n", err)
 		return err
@@ -116,7 +116,7 @@ func (_ LMCache) set(a Artifact, t *time.Time) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(a.LastModifiedFile, b, 0701)
+	return os.WriteFile(a.LastModifiedFile, b, 0600)
 }
 
 type Service struct {
