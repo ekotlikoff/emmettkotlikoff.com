@@ -18,18 +18,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
-// Watcher watches artifacts in s3 and downloads/restarts when new ones are
-// detected.
+// Watcher watches s3 and downloads/restarts the corresponding
+// services when new artifacts are detected.
 
 var (
 	artifactBucket string     = "ekotlikoff-codebuild"
 	localPath      string     = "/home/ekotlikoff/bin"
 	services       []*Service = []*Service{
+		newService("watcher", []Artifact{newArtifact("watcher", "emmettkotlikoff/")}),
 		newService("emmettkotlikoff.com", []Artifact{
 			newArtifact("website", "emmettkotlikoff/"),
 			newArtifact("gochessclient.wasm", "emmettkotlikoff/"),
 		}),
-		newService("watcher", []Artifact{newArtifact("watcher", "emmettkotlikoff/")}),
 		newService("chessengine", []Artifact{newArtifact("chess_engine", "rustchess/")}),
 	}
 	watchInterval int = 60
@@ -79,7 +79,7 @@ func (_ FCopier) Copy(a Artifact, r io.Reader) error {
 		log.Printf("Copy: %v\n", err)
 		return err
 	}
-	err = os.Chmod(a.LocalPath, 0700)
+	err = os.Chmod(a.LocalPath, 0701)
 	if err != nil {
 		log.Printf("Copy: %v\n", err)
 		return err
@@ -116,7 +116,7 @@ func (_ LMCache) set(a Artifact, t *time.Time) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(a.LastModifiedFile, b, 0701)
+	return os.WriteFile(a.LastModifiedFile, b, 0600)
 }
 
 type Service struct {
