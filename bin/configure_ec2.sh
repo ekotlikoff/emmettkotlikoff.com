@@ -9,8 +9,8 @@ sudo usermod -a -G emmettkotlikoff_cert root
 sudo yum install git -y
 
 # Install go https://go.dev/doc/install
-wget https://dl.google.com/go/go1.17.5.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.17.5.linux-amd64.tar.gz
+wget https://dl.google.com/go/go1.22.2.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
 
 # Install certbot and configure: https://certbot.eff.org/lets-encrypt/centosrhel8-other / https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/SSL-on-amazon-linux-2.html
 sudo wget -r --no-parent -A 'epel-release-*.rpm' https://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/
