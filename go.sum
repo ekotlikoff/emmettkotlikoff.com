@@ -43,6 +43,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ekotlikoff/gochess v0.0.0-20220912212114-641a42a278dc h1:MwFXhQM6Ls8rcutYd53cfY+hYSwPFgqqnl0jB7qubtE=
 github.com/ekotlikoff/gochess v0.0.0-20220912212114-641a42a278dc/go.mod h1:VaeSo/s5of4Slio6jCVyBbPWqFhsg1hyWNPM37KNZug=
+github.com/ekotlikoff/gochess v0.0.0-20240427201131-ed91d753cc99 h1:K50OnqSqmzx42tqmjgDd7KISlzXM7TaSR7QRO0BP9KQ=
+github.com/ekotlikoff/gochess v0.0.0-20240427201131-ed91d753cc99/go.mod h1:Rn4DhbRFFJAyctOvMZz8RSR2DvLq4ShzK96ZjhPX6Eo=
 github.com/ekotlikoff/gofit v0.1.0 h1:H/3vtdMIt/2MYgBDymqAFa9PCyak/cTVAFlDpC6sj/s=
 github.com/ekotlikoff/gofit v0.1.0/go.mod h1:ATmyKH/vt8GQgyEB4tqRJAYS0DlSkok5In54cP/yrRU=
 github.com/gofrs/uuid v4.2.0+incompatible h1:yyYWMnhkhrKwwr8gAOcOCYxOOscHgDS9yZgBrnJfGa0=

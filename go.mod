@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.16.5
 	github.com/aws/aws-sdk-go-v2/config v1.15.11
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.11
-	github.com/ekotlikoff/gochess v0.0.0-20220912212114-641a42a278dc
+	github.com/ekotlikoff/gochess v0.0.0-20240427201131-ed91d753cc99
 	github.com/ekotlikoff/gofit v0.1.0
 )
 
