@@ -5,7 +5,7 @@ env:
   variables:
     PACKAGE: "github.com/ekotlikoff/emmettkotlikoff.com"
     GOCHESS_PACKAGE: "github.com/ekotlikoff/gochess"
-    GO_VERSION: "1.17.0"
+    GO_VERSION: "1.18.0"
     ENV: "prod"
 
 phases:
