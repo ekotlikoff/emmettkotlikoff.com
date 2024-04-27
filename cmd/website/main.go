@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/ekotlikoff/gochess/pkg/chessserver"
+	"github.com/ekotlikoff/gofit/pkg/fitserver"
 )
 
 //go:generate bash ./../../bin/get_version.sh
@@ -41,13 +42,18 @@ func main() {
 		log.SetOutput(ioutil.Discard)
 	}
 	go chessserver.RunServer()
-	gatewayURL, _ := url.Parse("http://localhost:" +
+	go fitserver.RunServer()
+	chessGatewayURL, _ := url.Parse("http://localhost:" +
 		strconv.Itoa(8000))
-	gatewayProxy := httputil.NewSingleHostReverseProxy(gatewayURL)
+	fitGatewayURL, _ := url.Parse("http://localhost:" +
+		strconv.Itoa(8003))
+	chessGatewayProxy := httputil.NewSingleHostReverseProxy(chessGatewayURL)
+	fitGatewayProxy := httputil.NewSingleHostReverseProxy(fitGatewayURL)
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(handleWebRoot))
 	mux.Handle("/info", http.HandlerFunc(handleInfo))
-	mux.Handle("/chess/", gatewayProxy)
+	mux.Handle("/chess/", chessGatewayProxy)
+	mux.Handle("/fit/", fitGatewayProxy)
 	var err error
 	if config.TLS {
 		err = http.ListenAndServeTLS(
