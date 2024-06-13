@@ -8,65 +8,17 @@
 
 	<style type="text/css">
 		html,
-		.bg {
-			position: relative;
+		body {
+			height: 100%;
 			margin: 0;
-			overflow: hidden;
-			width: 100%;
-			height: 100%;
-		}
-
-		.bg:before {
-			content: ' ';
-			display: block;
-			position: absolute;
-			left: 0;
-			top: 0;
-			width: 100%;
-			height: 100%;
-			opacity: 0.6;
-			background-image: url('background.jpeg');
-			background-repeat: repeat-y;
-			background-size: 100% 100%;
-		}
-
-		.fg {
-			position: relative;
-		}
-
-		.nav {
-			text-align: center;
-		}
-
-		.nav li {
-			display: inline-block;
-			padding-left: 4%;
-			padding-right: 4%;
-		}
-
-		a {
-			text-decoration: none;
-			color: #000;
 		}
 
 	</style>
 </head>
 
-<body class="bg">
-	<div class="fg">
-		<ul class="nav">
-			<li><a href="index.html">Home</a></li>
-			<li><a href="chess.html">Chess</a></li>
-			<li><strong>Fit</strong></li>
-			<li><a href="oscar.html">Oscar</a></li>
-			<li><a href="https://github.com/ekotlikoff">Github</a></li>
-			<li><a href="mailto: ekotlikoff@gmail.com">Email</a></li>
-		</ul>
-		<div style="margin-left: 20px">
-			<iframe title="gofit" width="600" height="650" frameBorder="0" src="/fit">
-			</iframe>
-		</div>
-	</div>
+<body>
+	<iframe title="gofit" width="100%" height="100%" src="/fit">
+	</iframe>
 </body>
 
 </html>
