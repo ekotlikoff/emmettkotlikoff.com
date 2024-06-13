@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.15.11
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.11
 	github.com/ekotlikoff/gochess v0.0.0-20240427201131-ed91d753cc99
-	github.com/ekotlikoff/gofit v0.1.0
+	github.com/ekotlikoff/gofit v0.1.3
 )
 
 require (
@@ -27,7 +27,7 @@ require (
 	github.com/aws/smithy-go v1.11.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
-	github.com/gofrs/uuid v4.2.0+incompatible // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
